@@ -42,7 +42,7 @@ function SourceUrlInput({
         event.preventDefault();
         commitIfChanged();
       }}
-      placeholder="비워두면 위키백과에서 자동으로 찾습니다"
+      placeholder="비워두면 주제 제목으로 자동 검색합니다. URL이나 검색어를 넣어도 됩니다."
       aria-label={label}
     />
   );
@@ -153,13 +153,13 @@ export function SetupScreen({ controller }: { controller: MeetingController }) {
 
       <label className="-mt-4 flex flex-col gap-1.5">
         <span className="text-sm font-medium text-muted-foreground">
-          자료 URL (선택)
+          자료 URL 또는 단어 (선택)
         </span>
         <Input
           value={sourceUrl}
           onChange={(event) => setSourceUrl(event.target.value)}
-          placeholder="비워두면 위키백과에서 자동으로 찾습니다"
-          aria-label="자료 URL"
+          placeholder="비워두면 주제 제목으로 자동 검색합니다. URL이나 검색어를 넣어도 됩니다."
+          aria-label="자료 URL 또는 단어"
         />
       </label>
 
@@ -232,14 +232,14 @@ export function SetupScreen({ controller }: { controller: MeetingController }) {
 
               <div className="flex flex-col gap-1.5 pl-9">
                 <span className="text-sm text-muted-foreground">
-                  자료 URL (선택)
+                  자료 URL 또는 단어 (선택)
                 </span>
                 <SourceUrlInput
                   value={item.sourceUrl}
                   onCommit={(next) =>
                     controller.setAgendaItemSourceUrl(item.id, next)
                   }
-                  label={`${index + 1}번 주제 자료 URL`}
+                  label={`${index + 1}번 주제 자료 URL 또는 단어`}
                 />
               </div>
 

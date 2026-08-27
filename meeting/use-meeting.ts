@@ -27,7 +27,7 @@ import {
   updateItem,
 } from "./meeting-state";
 import { fetchLinkPreview, searchReferences } from "./references";
-import { isFetchableUrl } from "./link-preview";
+import { isFetchableUrl, looksLikeUrl } from "./link-preview";
 import { translateToKorean } from "./translate";
 import { clearMeeting, loadMeeting, saveMeeting } from "./storage";
 import type { AgendaItem, Meeting, Reference } from "./types";
@@ -49,7 +49,9 @@ export function useMeeting() {
   }, [meeting]);
 
   // 아직 자료를 찾지 않은 주제를 찾아 공개 웹 문서를 붙인다.
-  // 진행자가 자료 URL을 직접 줬으면 그 페이지를 가져오고, 아니면 위키백과에서 찾는다.
+  // 진행자가 자료 URL을 직접 줬으면 그 페이지를 가져오고, URL 모양이 아닌
+  // 낱말을 줬으면 그 낱말로 위키백과를 다시 찾는다. 아무것도 없으면
+  // 주제 제목으로 찾는다.
   useEffect(() => {
     const pending = meeting.items.filter(
       (item) =>
@@ -65,9 +67,11 @@ export function useMeeting() {
       const found: Promise<Reference[]> =
         sourceUrl === ""
           ? searchReferences(item.title)
-          : isFetchableUrl(sourceUrl)
-            ? fetchLinkPreview(sourceUrl).then((reference) => [reference])
-            : Promise.reject(new Error("가져올 수 없는 주소"));
+          : !looksLikeUrl(sourceUrl)
+            ? searchReferences(sourceUrl)
+            : isFetchableUrl(sourceUrl)
+              ? fetchLinkPreview(sourceUrl).then((reference) => [reference])
+              : Promise.reject(new Error("가져올 수 없는 주소"));
 
       found
         .then((references) =>

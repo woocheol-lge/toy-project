@@ -4,6 +4,7 @@ import { ExternalLink, RefreshCw } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 
+import { looksLikeUrl } from "../link-preview";
 import type { AgendaItem } from "../types";
 
 export function ReferenceList({
@@ -19,7 +20,9 @@ export function ReferenceList({
     );
   }
 
-  const fromUrl = item.sourceUrl.trim() !== "";
+  const sourceUrl = item.sourceUrl.trim();
+  const fromUrl = sourceUrl !== "" && looksLikeUrl(sourceUrl);
+  const fromKeyword = sourceUrl !== "" && !looksLikeUrl(sourceUrl);
 
   if (item.referenceStatus === "failed" || item.referenceStatus === "empty") {
     return (
@@ -29,7 +32,9 @@ export function ReferenceList({
             ? fromUrl
               ? "넣어 둔 URL에서 자료를 가져오지 못했습니다."
               : "자료를 가져오지 못했습니다."
-            : "위키백과에 이 주제로 된 문서가 없습니다."}
+            : fromKeyword
+              ? "위키백과에 그 단어로 된 문서가 없습니다."
+              : "위키백과에 이 주제로 된 문서가 없습니다."}
         </p>
         <Button type="button" variant="outline" onClick={onRetry}>
           <RefreshCw />

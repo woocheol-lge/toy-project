@@ -34,6 +34,19 @@ export function isFetchableUrl(input: string): boolean {
   return true;
 }
 
+/**
+ * 입력이 URL 모양인지만 본다. 서버가 실제로 가져와도 안전한지는
+ * isFetchableUrl에서 따로 확인한다. URL 모양이 아니면 검색어로 다룬다.
+ */
+export function looksLikeUrl(input: string): boolean {
+  try {
+    new URL(input.trim());
+    return true;
+  } catch {
+    return false;
+  }
+}
+
 function findMetaContent(html: string, key: string): string | null {
   const metaRegex = /<meta\b[^>]*>/gi;
   const attrRegex =
