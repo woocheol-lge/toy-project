@@ -56,7 +56,7 @@ test("주제가 없으면 회의를 시작할 수 없다", () => {
   render(<MeetingScreens />);
 
   expect(
-    screen.getByRole("heading", { level: 1, name: "⏰POMODORO MEETING TIMER" }),
+    screen.getByRole("heading", { level: 1, name: "⏰ POMODORO MEETING TIMER" }),
   ).toBeInTheDocument();
   expect(screen.getByRole("button", { name: "회의 시작" })).toBeDisabled();
 });
@@ -197,7 +197,7 @@ test("확인 창에서 승낙하면 결론이 사라지고 준비 화면으로 �
   fireEvent.click(screen.getByRole("button", { name: "새 회의 시작" }));
 
   expect(
-    screen.getByRole("heading", { level: 1, name: "⏰POMODORO MEETING TIMER" }),
+    screen.getByRole("heading", { level: 1, name: "⏰ POMODORO MEETING TIMER" }),
   ).toBeInTheDocument();
   expect(screen.getByText("아직 등록한 주제가 없습니다.")).toBeInTheDocument();
 });
