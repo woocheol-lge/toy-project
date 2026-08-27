@@ -3,13 +3,26 @@
 import { cn } from "@/lib/utils";
 
 const SIZE = 220;
-const STROKE = 16;
-const RADIUS = (SIZE - STROKE) / 2;
-const CIRCUMFERENCE = 2 * Math.PI * RADIUS;
+const CENTER = SIZE / 2;
+const RADIUS = SIZE / 2;
+
+/** 12시 방향에서 시계 방향으로 도는 파이 조각의 SVG 경로를 만든다. */
+function pieSlicePath(ratio: number): string | null {
+  if (ratio <= 0) return null;
+  if (ratio >= 1) return `M ${CENTER} 0 A ${RADIUS} ${RADIUS} 0 1 1 ${CENTER - 0.01} 0 Z`;
+
+  const angle = ratio * 360;
+  const toRadians = (degrees: number) => ((degrees - 90) * Math.PI) / 180;
+  const x = CENTER + RADIUS * Math.cos(toRadians(angle));
+  const y = CENTER + RADIUS * Math.sin(toRadians(angle));
+  const largeArc = angle > 180 ? 1 : 0;
+
+  return `M ${CENTER} ${CENTER} L ${CENTER} 0 A ${RADIUS} ${RADIUS} 0 ${largeArc} 1 ${x} ${y} Z`;
+}
 
 /**
- * 남은 시간을 원으로 보여준다. 시간이 갈수록 원이 비고,
- * 배정 시간을 넘기면 가득 찬 상태로 색이 바뀐다.
+ * 포모도로 타이머처럼 가득 찬 빨간 원이 시간이 갈수록 파이 조각으로 줄어든다.
+ * 배정 시간을 넘기면 빨간 조각은 남지 않고, 테두리가 초과를 알린다.
  */
 export function TimerDial({
   remainingRatio,
@@ -18,7 +31,7 @@ export function TimerDial({
   remainingRatio: number;
   overtime: boolean;
 }) {
-  const shown = overtime ? 1 : remainingRatio;
+  const path = overtime ? null : pieSlicePath(remainingRatio);
 
   return (
     <svg
@@ -27,28 +40,19 @@ export function TimerDial({
       role="presentation"
     >
       <circle
-        cx={SIZE / 2}
-        cy={SIZE / 2}
-        r={RADIUS}
+        cx={CENTER}
+        cy={CENTER}
+        r={RADIUS - 1}
         fill="none"
-        strokeWidth={STROKE}
-        className="stroke-muted-foreground/20"
+        strokeWidth={2}
+        className={cn(overtime ? "stroke-destructive" : "stroke-muted-foreground/25")}
       />
-      <circle
-        cx={SIZE / 2}
-        cy={SIZE / 2}
-        r={RADIUS}
-        fill="none"
-        strokeWidth={STROKE}
-        strokeLinecap="round"
-        strokeDasharray={CIRCUMFERENCE}
-        strokeDashoffset={CIRCUMFERENCE * (1 - shown)}
-        transform={`rotate(-90 ${SIZE / 2} ${SIZE / 2})`}
-        className={cn(
-          "transition-[stroke-dashoffset] duration-300 ease-linear",
-          overtime ? "stroke-destructive" : "stroke-foreground"
-        )}
-      />
+      {path && (
+        <path
+          d={path}
+          className="fill-destructive transition-[d] duration-300 ease-linear"
+        />
+      )}
     </svg>
   );
 }
