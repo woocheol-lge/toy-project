@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { Check, Copy } from "lucide-react";
+import { Check, Copy, Pencil } from "lucide-react";
 
 import {
   AlertDialog,
@@ -16,12 +16,76 @@ import {
 } from "@/components/ui/alert-dialog";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 
-import { summarizeConclusion } from "../conclusion";
+import { resolveDecision } from "../conclusion";
 import { formatClock, toMarkdown } from "../format";
+import type { AgendaItem } from "../types";
 import type { MeetingController } from "../use-meeting";
 
 type CopyState = "idle" | "copied" | "failed";
+
+/**
+ * 자동으로 뽑은 결정사항을 보여주고, 연필 아이콘을 누르면 손으로 고칠 수
+ * 있게 한다. 빈 값으로 저장하면 다시 자동으로 뽑은 값으로 돌아간다.
+ */
+function DecisionField({
+  item,
+  onSave,
+}: {
+  item: AgendaItem;
+  onSave: (value: string) => void;
+}) {
+  const decision = resolveDecision(item);
+  const [editing, setEditing] = useState(false);
+  const [draft, setDraft] = useState(decision);
+
+  if (!editing) {
+    return (
+      <p data-testid="topic-conclusion" className="flex items-start gap-2">
+        <span className="font-medium">결정사항</span>
+        <span className="flex-1">{decision}</span>
+        <Button
+          type="button"
+          variant="ghost"
+          size="icon-sm"
+          aria-label="결정사항 고치기"
+          onClick={() => {
+            setDraft(decision);
+            setEditing(true);
+          }}
+        >
+          <Pencil className="size-4" />
+        </Button>
+      </p>
+    );
+  }
+
+  function commit() {
+    onSave(draft.trim());
+    setEditing(false);
+  }
+
+  return (
+    <div className="flex items-center gap-2">
+      <span className="font-medium whitespace-nowrap">결정사항</span>
+      <Input
+        autoFocus
+        value={draft}
+        onChange={(event) => setDraft(event.target.value)}
+        onBlur={commit}
+        onKeyDown={(event) => {
+          if (event.key !== "Enter") return;
+          event.preventDefault();
+          commit();
+        }}
+        aria-label="결정사항 입력"
+        data-testid="topic-conclusion"
+        className="flex-1"
+      />
+    </div>
+  );
+}
 
 export function FinishedScreen({
   controller,
@@ -61,7 +125,6 @@ export function FinishedScreen({
         {controller.meeting.items.map((item) => {
           const notes = item.notes.trim();
           const empty = notes === "";
-          const conclusion = summarizeConclusion(item.notes);
           const over = item.elapsedSeconds > item.allocatedSeconds;
 
           return (
@@ -84,9 +147,14 @@ export function FinishedScreen({
                 </p>
               ) : (
                 <div className="flex flex-col gap-2">
-                  <p data-testid="topic-conclusion">
-                    <span className="font-medium">결론</span> {conclusion}
-                  </p>
+                  <DecisionField
+                    item={item}
+                    onSave={(value) =>
+                      controller.updateAgendaItem(item.id, {
+                        decisionOverride: value,
+                      })
+                    }
+                  />
                   <p
                     data-testid="topic-notes"
                     className="text-sm whitespace-pre-wrap text-muted-foreground"
@@ -109,14 +177,14 @@ export function FinishedScreen({
                 variant="outline"
                 className="h-11 px-5 text-base"
               >
-                새 회의 준비
+                다음 회의로 넘어가기
               </Button>
             }
           />
           <AlertDialogContent>
             <AlertDialogHeader>
               <AlertDialogTitle>
-                정말 새 회의를 시작하시겠습니까?
+                정말 다음 회의로 넘어가시겠습니까?
               </AlertDialogTitle>
               <AlertDialogDescription>
                 지금 보이는 회의 결론이 사라지고 되돌릴 수 없습니다. 필요하다면
@@ -128,9 +196,7 @@ export function FinishedScreen({
                 render={<Button variant="outline">취소</Button>}
               />
               <AlertDialogAction
-                render={
-                  <Button onClick={controller.reset}>새 회의 시작</Button>
-                }
+                render={<Button onClick={controller.reset}>넘어가기</Button>}
               />
             </AlertDialogFooter>
           </AlertDialogContent>

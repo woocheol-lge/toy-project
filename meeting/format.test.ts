@@ -43,7 +43,7 @@ describe("결론 마크다운", () => {
     const markdown = toMarkdown(meetingWithConclusions());
 
     expect(markdown).toContain("## 배포 일정");
-    expect(markdown).toContain("**결론:** 다음 주 화요일 배포로 확정");
+    expect(markdown).toContain("**결정사항:** 다음 주 화요일 배포로 확정");
     expect(markdown).toContain("배포 후보 두 가지를 검토함");
   });
 

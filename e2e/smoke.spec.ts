@@ -274,9 +274,9 @@ test("새 회의 준비는 확인을 거치고, 취소하면 결론이 그대로
     .fill("화요일 배포로 확정. 롤백 담당은 지수.");
   await page.getByRole("button", { name: "회의 마치기" }).click();
 
-  await page.getByRole("button", { name: "새 회의 준비" }).click();
+  await page.getByRole("button", { name: "다음 회의로 넘어가기" }).click();
   await expect(
-    page.getByText("정말 새 회의를 시작하시겠습니까?"),
+    page.getByText("정말 다음 회의로 넘어가시겠습니까?"),
   ).toBeVisible();
 
   await page.getByRole("button", { name: "취소" }).click();
@@ -284,8 +284,8 @@ test("새 회의 준비는 확인을 거치고, 취소하면 결론이 그대로
     page.getByText("화요일 배포로 확정. 롤백 담당은 지수."),
   ).toBeVisible();
 
-  await page.getByRole("button", { name: "새 회의 준비" }).click();
-  await page.getByRole("button", { name: "새 회의 시작" }).click();
+  await page.getByRole("button", { name: "다음 회의로 넘어가기" }).click();
+  await page.getByRole("button", { name: "넘어가기" }).click();
   await expect(page.getByRole("heading", { level: 1 })).toHaveText(
     "⏰ POMODORO MEETING TIMER",
   );
@@ -389,4 +389,30 @@ test("남은 시간이 5분 이하가 되면 시계가 빨간색으로 바뀐다
   await page.reload();
 
   await expect(clock).toHaveClass(/text-destructive/);
+});
+
+test("결정사항을 연필로 고치면 그 값이 남고, 지우면 자동으로 뽑은 값으로 돌아간다", async ({
+  page,
+}) => {
+  await page.goto("/");
+  await addAgendaItem(page, "배포 일정 확정", "10");
+  await page.getByRole("button", { name: "회의 시작" }).click();
+  await page.getByLabel("논의사항").fill("배포 후보를 검토함\n화요일로 확정");
+  await page.getByRole("button", { name: "회의 마치기" }).click();
+
+  const decision = page.getByTestId("topic-conclusion").first();
+  await expect(decision).toContainText("화요일로 확정");
+
+  await page.getByRole("button", { name: "결정사항 고치기" }).first().click();
+  const input = page.getByLabel("결정사항 입력");
+  await input.fill("화요일 오전 10시로 확정");
+  await input.blur();
+
+  await expect(decision).toContainText("화요일 오전 10시로 확정");
+
+  await page.getByRole("button", { name: "결정사항 고치기" }).first().click();
+  await page.getByLabel("결정사항 입력").fill("");
+  await page.getByLabel("결정사항 입력").blur();
+
+  await expect(decision).toContainText("화요일로 확정");
 });

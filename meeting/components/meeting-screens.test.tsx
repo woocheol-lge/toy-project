@@ -56,7 +56,10 @@ test("주제가 없으면 회의를 시작할 수 없다", () => {
   render(<MeetingScreens />);
 
   expect(
-    screen.getByRole("heading", { level: 1, name: "⏰ POMODORO MEETING TIMER" }),
+    screen.getByRole("heading", {
+      level: 1,
+      name: "⏰ POMODORO MEETING TIMER",
+    }),
   ).toBeInTheDocument();
   expect(screen.getByRole("button", { name: "회의 시작" })).toBeDisabled();
 });
@@ -174,10 +177,10 @@ test("새 회의 준비를 누르면 확인을 받고, 취소하면 결론이 �
   fireEvent.click(screen.getByRole("button", { name: "회의 시작" }));
   fireEvent.click(screen.getByRole("button", { name: /회의 마치기/ }));
 
-  fireEvent.click(screen.getByRole("button", { name: "새 회의 준비" }));
+  fireEvent.click(screen.getByRole("button", { name: "다음 회의로 넘어가기" }));
 
   expect(
-    screen.getByText("정말 새 회의를 시작하시겠습니까?"),
+    screen.getByText("정말 다음 회의로 넘어가시겠습니까?"),
   ).toBeInTheDocument();
 
   fireEvent.click(screen.getByRole("button", { name: "취소" }));
@@ -193,11 +196,14 @@ test("확인 창에서 승낙하면 결론이 사라지고 준비 화면으로 �
   fireEvent.click(screen.getByRole("button", { name: "회의 시작" }));
   fireEvent.click(screen.getByRole("button", { name: /회의 마치기/ }));
 
-  fireEvent.click(screen.getByRole("button", { name: "새 회의 준비" }));
-  fireEvent.click(screen.getByRole("button", { name: "새 회의 시작" }));
+  fireEvent.click(screen.getByRole("button", { name: "다음 회의로 넘어가기" }));
+  fireEvent.click(screen.getByRole("button", { name: "넘어가기" }));
 
   expect(
-    screen.getByRole("heading", { level: 1, name: "⏰ POMODORO MEETING TIMER" }),
+    screen.getByRole("heading", {
+      level: 1,
+      name: "⏰ POMODORO MEETING TIMER",
+    }),
   ).toBeInTheDocument();
   expect(screen.getByText("아직 등록한 주제가 없습니다.")).toBeInTheDocument();
 });
@@ -343,4 +349,32 @@ test("URL에서 가져온 영어 자료는 한국어로 번역되어 보인다",
   expect(
     screen.getByText("깃허브는 사람들이 소프트웨어를 만드는 곳입니다."),
   ).toBeInTheDocument();
+});
+
+test("결정사항을 연필로 고치면 그 값이 남고, 지우면 자동으로 뽑은 값으로 돌아간다", () => {
+  render(<MeetingScreens />);
+  addAgendaItem("배포 일정 확정", "10");
+  fireEvent.click(screen.getByRole("button", { name: "회의 시작" }));
+
+  fireEvent.change(screen.getByLabelText("논의사항"), {
+    target: { value: "배포 후보를 검토함\n화요일로 확정" },
+  });
+  fireEvent.click(screen.getByRole("button", { name: /회의 마치기/ }));
+
+  expect(screen.getByText("화요일로 확정")).toBeInTheDocument();
+
+  fireEvent.click(screen.getByRole("button", { name: "결정사항 고치기" }));
+  const input = screen.getByLabelText("결정사항 입력");
+  fireEvent.change(input, { target: { value: "화요일 오전 10시로 확정" } });
+  fireEvent.blur(input);
+
+  expect(screen.getByText("화요일 오전 10시로 확정")).toBeInTheDocument();
+  expect(screen.queryByText("화요일로 확정")).not.toBeInTheDocument();
+
+  fireEvent.click(screen.getByRole("button", { name: "결정사항 고치기" }));
+  const input2 = screen.getByLabelText("결정사항 입력");
+  fireEvent.change(input2, { target: { value: "" } });
+  fireEvent.blur(input2);
+
+  expect(screen.getByText("화요일로 확정")).toBeInTheDocument();
 });

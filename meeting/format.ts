@@ -1,4 +1,4 @@
-import { summarizeConclusion } from "./conclusion";
+import { resolveDecision } from "./conclusion";
 import type { Meeting } from "./types";
 
 /** 초를 시계 모양 문자열로 바꾼다. 한 시간을 넘으면 시간 자리를 붙인다. */
@@ -28,9 +28,9 @@ export function toMarkdown(meeting: Meeting): string {
       const notes = item.notes.trim();
       if (notes === "") return `## ${item.title}\n\n_논의사항 없음_`;
 
-      const conclusion = summarizeConclusion(item.notes);
+      const decision = resolveDecision(item);
 
-      return `## ${item.title}\n\n**결론:** ${conclusion}\n\n${notes}`;
+      return `## ${item.title}\n\n**결정사항:** ${decision}\n\n${notes}`;
     })
     .join("\n\n");
 
