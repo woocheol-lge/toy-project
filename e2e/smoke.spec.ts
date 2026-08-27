@@ -287,7 +287,7 @@ test("새 회의 준비는 확인을 거치고, 취소하면 결론이 그대로
   await page.getByRole("button", { name: "새 회의 준비" }).click();
   await page.getByRole("button", { name: "새 회의 시작" }).click();
   await expect(page.getByRole("heading", { level: 1 })).toHaveText(
-    "⏰POMODORO MEETING TIMER",
+    "⏰ POMODORO MEETING TIMER",
   );
   await expect(page.getByText("아직 등록한 주제가 없습니다.")).toBeVisible();
 
