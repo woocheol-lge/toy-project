@@ -45,7 +45,7 @@ function addAgendaItem(title: string, minutes: string, sourceUrl?: string) {
     target: { value: minutes },
   });
   if (sourceUrl !== undefined) {
-    fireEvent.change(screen.getByLabelText("자료 URL"), {
+    fireEvent.change(screen.getByLabelText("자료 URL 또는 단어"), {
       target: { value: sourceUrl },
     });
   }
@@ -302,10 +302,10 @@ test("주제를 등록한 뒤에도 자료 URL을 넣으면 자동 검색 대신
 
   expect(await screen.findByText("엉뚱한 위키 문서")).toBeInTheDocument();
 
-  fireEvent.change(screen.getByLabelText("1번 주제 자료 URL"), {
+  fireEvent.change(screen.getByLabelText("1번 주제 자료 URL 또는 단어"), {
     target: { value: "https://example.com/later" },
   });
-  fireEvent.blur(screen.getByLabelText("1번 주제 자료 URL"));
+  fireEvent.blur(screen.getByLabelText("1번 주제 자료 URL 또는 단어"));
 
   expect(await screen.findByText("나중에 넣은 자료")).toBeInTheDocument();
   expect(screen.queryByText("엉뚱한 위키 문서")).not.toBeInTheDocument();
@@ -377,4 +377,31 @@ test("결정사항을 연필로 고치면 그 값이 남고, 지우면 자동으
   fireEvent.blur(input2);
 
   expect(screen.getByText("화요일로 확정")).toBeInTheDocument();
+});
+
+test("자료 칸에 URL이 아닌 낱말을 넣으면 그 낱말로 위키백과를 다시 찾는다", async () => {
+  vi.stubGlobal(
+    "fetch",
+    vi.fn(async (input: RequestInfo | URL) => {
+      const url = new URL(String(input));
+      const query = url.searchParams.get("gpssearch");
+      if (query === "MCP") return wikipediaReply("MCP (프로토콜)");
+      return wikipediaReply(null);
+    }),
+  );
+
+  render(<MeetingScreens />);
+  addAgendaItem("MCP 서버 만들기", "10");
+
+  expect(
+    await screen.findByText("위키백과에 이 주제로 된 문서가 없습니다."),
+  ).toBeInTheDocument();
+
+  fireEvent.change(screen.getByLabelText("1번 주제 자료 URL 또는 단어"), {
+    target: { value: "MCP" },
+  });
+  fireEvent.blur(screen.getByLabelText("1번 주제 자료 URL 또는 단어"));
+
+  expect(await screen.findByText("MCP (프로토콜)")).toBeInTheDocument();
+  expect(screen.getByText("위키백과에서 찾은 문서입니다.")).toBeInTheDocument();
 });

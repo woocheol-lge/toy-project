@@ -299,7 +299,7 @@ test("새 회의 준비는 확인을 거치고, 취소하면 결론이 그대로
 test("내부망 주소는 안전하지 않아 자료를 가져오지 않는다", async ({ page }) => {
   await page.goto("/");
   await addAgendaItem(page, "배포 일정 확정", "10");
-  const url = page.getByLabel("1번 주제 자료 URL");
+  const url = page.getByLabel("1번 주제 자료 URL 또는 단어");
   await url.fill("http://localhost:9999");
   await url.blur();
 
@@ -335,7 +335,7 @@ test("URL에서 가져온 영어 자료는 한국어로 번역된다", async ({ 
 
   await page.goto("/");
   await addAgendaItem(page, "깃허브 소개", "10");
-  const url = page.getByLabel("1번 주제 자료 URL");
+  const url = page.getByLabel("1번 주제 자료 URL 또는 단어");
   await url.fill("https://example.com/");
   await url.blur();
 
@@ -415,4 +415,24 @@ test("결정사항을 연필로 고치면 그 값이 남고, 지우면 자동으
   await page.getByLabel("결정사항 입력").blur();
 
   await expect(decision).toContainText("화요일로 확정");
+});
+
+test("자료 칸에 URL이 아닌 낱말을 넣으면 그 낱말로 위키백과를 다시 찾는다", async ({
+  page,
+}) => {
+  await stubReferences(page, null);
+  await page.goto("/");
+  await addAgendaItem(page, "MCP 서버 만들기", "10");
+
+  await expect(
+    page.getByText("위키백과에 이 주제로 된 문서가 없습니다."),
+  ).toBeVisible();
+
+  await stubReferences(page, "MCP (프로토콜)");
+  const sourceInput = page.getByLabel("1번 주제 자료 URL 또는 단어");
+  await sourceInput.fill("MCP");
+  await sourceInput.blur();
+
+  await expect(page.getByRole("link", { name: /MCP \(프로토콜\)/ })).toBeVisible();
+  await expect(page.getByText("위키백과에서 찾은 문서입니다.")).toBeVisible();
 });

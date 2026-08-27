@@ -1,6 +1,10 @@
 import { describe, expect, test } from "vitest";
 
-import { extractPageSummary, isFetchableUrl } from "./link-preview";
+import {
+  extractPageSummary,
+  isFetchableUrl,
+  looksLikeUrl,
+} from "./link-preview";
 
 describe("가져올 수 있는 URL인지 확인", () => {
   test("일반적인 https 주소는 가져올 수 있다", () => {
@@ -85,5 +89,26 @@ describe("페이지에서 제목과 설명 뽑기", () => {
     const html = `<meta property="og:description" content="A &amp; B &lt;태그&gt;">`;
 
     expect(extractPageSummary(html, URL).summary).toBe("A & B <태그>");
+  });
+});
+
+describe("URL 모양인지만 가려내기", () => {
+  test("http/https 주소는 URL 모양이다", () => {
+    expect(looksLikeUrl("https://example.com")).toBe(true);
+    expect(looksLikeUrl("http://example.com")).toBe(true);
+  });
+
+  test("스킴이 없는 낱말은 URL 모양이 아니다", () => {
+    expect(looksLikeUrl("MCP")).toBe(false);
+    expect(looksLikeUrl("서버 아키텍처")).toBe(false);
+  });
+
+  test("차단 대상인 내부망 주소도 URL 모양으로는 본다", () => {
+    expect(looksLikeUrl("http://localhost:9999")).toBe(true);
+  });
+
+  test("빈 문자열은 URL 모양이 아니다", () => {
+    expect(looksLikeUrl("")).toBe(false);
+    expect(looksLikeUrl("   ")).toBe(false);
   });
 });
