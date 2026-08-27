@@ -145,7 +145,9 @@ export function useMeeting() {
     }) => setMeeting((previous) => addItem(previous, input)),
     updateAgendaItem: (
       id: string,
-      patch: Partial<Pick<AgendaItem, "title" | "allocatedSeconds">>,
+      patch: Partial<
+        Pick<AgendaItem, "title" | "allocatedSeconds" | "decisionOverride">
+      >,
     ) => setMeeting((previous) => updateItem(previous, id, patch)),
     removeAgendaItem: (id: string) =>
       setMeeting((previous) => removeItem(previous, id)),

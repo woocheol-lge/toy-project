@@ -27,6 +27,11 @@ export type AgendaItem = {
    * 값이 있으면 자동 검색 대신 이 주소에서 자료를 가져온다.
    */
   sourceUrl: string;
+  /**
+   * 논의사항에서 자동으로 뽑은 결정사항을 진행자가 손으로 고친 값.
+   * 비어 있으면 자동으로 뽑은 값을 그대로 보여준다.
+   */
+  decisionOverride: string;
 };
 
 export type MeetingPhase = "setup" | "running" | "finished";

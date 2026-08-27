@@ -33,6 +33,8 @@ function withReferenceFields(meeting: Meeting): Meeting {
       references: Array.isArray(item.references) ? item.references : [],
       referenceStatus: item.referenceStatus ?? "idle",
       sourceUrl: typeof item.sourceUrl === "string" ? item.sourceUrl : "",
+      decisionOverride:
+        typeof item.decisionOverride === "string" ? item.decisionOverride : "",
       notes:
         typeof item.notes === "string"
           ? item.notes

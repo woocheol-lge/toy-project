@@ -26,6 +26,7 @@ export function addItem(
     references: [],
     referenceStatus: "idle",
     sourceUrl: input.sourceUrl ?? "",
+    decisionOverride: "",
   };
 
   return { ...meeting, items: [...meeting.items, item] };
@@ -34,7 +35,12 @@ export function addItem(
 export function updateItem(
   meeting: Meeting,
   id: string,
-  patch: Partial<Pick<AgendaItem, "title" | "allocatedSeconds" | "sourceUrl">>,
+  patch: Partial<
+    Pick<
+      AgendaItem,
+      "title" | "allocatedSeconds" | "sourceUrl" | "decisionOverride"
+    >
+  >,
 ): Meeting {
   return {
     ...meeting,

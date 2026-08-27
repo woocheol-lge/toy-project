@@ -23,3 +23,16 @@ export function summarizeConclusion(notes: string): string {
 
   return lastSentence.replace(LIST_MARKER, "").trim();
 }
+
+/**
+ * 화면에 보여줄 결정사항을 정한다. 진행자가 손으로 고친 값이 있으면
+ * 그 값을 쓰고, 없으면 논의사항에서 기계적으로 뽑은 결론을 쓴다.
+ */
+export function resolveDecision(item: {
+  notes: string;
+  decisionOverride: string;
+}): string {
+  const override = item.decisionOverride.trim();
+
+  return override !== "" ? override : summarizeConclusion(item.notes);
+}
