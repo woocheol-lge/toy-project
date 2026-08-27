@@ -75,13 +75,13 @@ test("주제를 등록하고 회의를 시작하면 첫 주제와 남은 시간�
   expect(screen.getByLabelText("남은 시간")).toHaveTextContent("10:00");
 });
 
-test("결론을 적고 마치면 종료 화면에 그 결론이 남는다", () => {
+test("논의사항을 적고 마치면 종료 화면에 논의사항과 정리된 결론이 함께 남는다", () => {
   render(<MeetingScreens />);
   addAgendaItem("배포 일정", "10");
   fireEvent.click(screen.getByRole("button", { name: "회의 시작" }));
 
-  fireEvent.change(screen.getByLabelText("이 주제의 결론"), {
-    target: { value: "다음 주 화요일 배포로 확정" },
+  fireEvent.change(screen.getByLabelText("논의사항"), {
+    target: { value: "배포 후보 두 가지를 검토함\n다음 주 화요일 배포로 확정" },
   });
   fireEvent.click(screen.getByRole("button", { name: /회의 마치기/ }));
 
@@ -89,6 +89,7 @@ test("결론을 적고 마치면 종료 화면에 그 결론이 남는다", () =
     screen.getByRole("heading", { level: 1, name: "회의 결론" }),
   ).toBeInTheDocument();
   expect(screen.getByText("다음 주 화요일 배포로 확정")).toBeInTheDocument();
+  expect(screen.getByText(/배포 후보 두 가지를 검토함/)).toBeInTheDocument();
 });
 
 test("결론을 비운 채 마치면 종료 화면에서 결론 없음으로 구분된다", () => {
@@ -97,14 +98,14 @@ test("결론을 비운 채 마치면 종료 화면에서 결론 없음으로 구
   fireEvent.click(screen.getByRole("button", { name: "회의 시작" }));
   fireEvent.click(screen.getByRole("button", { name: /회의 마치기/ }));
 
-  expect(screen.getByText("결론 없음")).toBeInTheDocument();
+  expect(screen.getByText("논의사항 없음")).toBeInTheDocument();
 });
 
 test("진행 중인 회의는 다시 그려도 이어서 보인다", () => {
   const first = render(<MeetingScreens />);
   addAgendaItem("배포 일정", "10");
   fireEvent.click(screen.getByRole("button", { name: "회의 시작" }));
-  fireEvent.change(screen.getByLabelText("이 주제의 결론"), {
+  fireEvent.change(screen.getByLabelText("논의사항"), {
     target: { value: "작성 중인 결론" },
   });
   first.unmount();
@@ -114,7 +115,7 @@ test("진행 중인 회의는 다시 그려도 이어서 보인다", () => {
   expect(
     screen.getByRole("heading", { level: 1, name: "배포 일정" }),
   ).toBeInTheDocument();
-  expect(screen.getByLabelText("이 주제의 결론")).toHaveValue("작성 중인 결론");
+  expect(screen.getByLabelText("논의사항")).toHaveValue("작성 중인 결론");
 });
 
 test("주제를 등록하면 찾은 자료를 주제 아래에 보여준다", async () => {

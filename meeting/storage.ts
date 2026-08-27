@@ -13,19 +13,32 @@ function isMeeting(value: unknown): value is Meeting {
       candidate.phase === "finished") &&
     Array.isArray(candidate.items) &&
     typeof candidate.currentIndex === "number" &&
-    (candidate.runningSince === null || typeof candidate.runningSince === "number")
+    (candidate.runningSince === null ||
+      typeof candidate.runningSince === "number")
   );
 }
 
-/** 자료 항목이 없던 시절에 저장된 회의도 그대로 이어서 쓸 수 있게 채워 둔다. */
+/** 예전 모양으로 저장된 필드에 접근하기 위한 느슨한 타입. */
+type LegacyAgendaItem = AgendaItem & { conclusion?: unknown };
+
+/**
+ * 예전 버전에서 저장된 회의도 그대로 이어서 쓸 수 있게 빠진 필드를 채운다.
+ * "결론(conclusion)"이 "논의사항(notes)"으로 이름이 바뀐 것도 여기서 옮긴다.
+ */
 function withReferenceFields(meeting: Meeting): Meeting {
   return {
     ...meeting,
-    items: meeting.items.map((item: AgendaItem) => ({
+    items: meeting.items.map((item: LegacyAgendaItem) => ({
       ...item,
       references: Array.isArray(item.references) ? item.references : [],
       referenceStatus: item.referenceStatus ?? "idle",
       sourceUrl: typeof item.sourceUrl === "string" ? item.sourceUrl : "",
+      notes:
+        typeof item.notes === "string"
+          ? item.notes
+          : typeof item.conclusion === "string"
+            ? item.conclusion
+            : "",
     })),
   };
 }

@@ -12,7 +12,7 @@ import {
   pause,
   removeItem,
   resume,
-  setConclusion,
+  setNotes,
   startMeeting,
   totalAllocatedSeconds,
   totalElapsedSeconds,
@@ -73,7 +73,9 @@ describe("회의 준비", () => {
     expect(withUrl.items[0].sourceUrl).toBe("https://example.com/deploy");
 
     const id = withUrl.items[0].id;
-    withUrl = updateItem(withUrl, id, { sourceUrl: "https://example.com/updated" });
+    withUrl = updateItem(withUrl, id, {
+      sourceUrl: "https://example.com/updated",
+    });
     expect(withUrl.items[0].sourceUrl).toBe("https://example.com/updated");
   });
 });
@@ -127,18 +129,18 @@ describe("회의 진행", () => {
 
   test("결론은 현재 주제에 남고 주제를 옮겨도 유지된다", () => {
     let meeting = startMeeting(meetingWithItems(), T0);
-    meeting = setConclusion(meeting, "다음 주 화요일 배포로 확정");
+    meeting = setNotes(meeting, "다음 주 화요일 배포로 확정");
     meeting = goToNext(meeting, T0 + 60_000);
 
-    expect(meeting.items[0].conclusion).toBe("다음 주 화요일 배포로 확정");
-    expect(currentItem(meeting)?.conclusion).toBe("");
+    expect(meeting.items[0].notes).toBe("다음 주 화요일 배포로 확정");
+    expect(currentItem(meeting)?.notes).toBe("");
   });
 
   test("결론이 비어 있어도 다음 주제로 넘어간다", () => {
     let meeting = startMeeting(meetingWithItems(), T0);
     meeting = goToNext(meeting, T0 + 60_000);
 
-    expect(meeting.items[0].conclusion).toBe("");
+    expect(meeting.items[0].notes).toBe("");
     expect(currentItem(meeting)?.title).toBe("채용");
   });
 
@@ -192,12 +194,12 @@ describe("주제 순서 바꾸기", () => {
 describe("이전 주제로 돌아가기", () => {
   test("이전 주제로 돌아가면 그 주제의 시간이 이어서 흐른다", () => {
     let meeting = startMeeting(meetingWithItems(), T0);
-    meeting = setConclusion(meeting, "배포는 화요일");
+    meeting = setNotes(meeting, "배포는 화요일");
     meeting = goToNext(meeting, T0 + 120_000);
     meeting = goToPrevious(meeting, T0 + 180_000);
 
     expect(currentItem(meeting)?.title).toBe("배포 일정");
-    expect(currentItem(meeting)?.conclusion).toBe("배포는 화요일");
+    expect(currentItem(meeting)?.notes).toBe("배포는 화요일");
     // 앞서 쌓인 120초에서 이어진다.
     expect(currentElapsedSeconds(meeting, T0 + 190_000)).toBe(130);
     // 두 번째 주제에 머문 60초도 남아 있다.

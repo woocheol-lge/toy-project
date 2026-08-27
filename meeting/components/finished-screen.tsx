@@ -17,6 +17,7 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 
+import { summarizeConclusion } from "../conclusion";
 import { formatClock, toMarkdown } from "../format";
 import type { MeetingController } from "../use-meeting";
 
@@ -58,7 +59,9 @@ export function FinishedScreen({
 
       <ol className="flex flex-col gap-4">
         {controller.meeting.items.map((item) => {
-          const empty = item.conclusion.trim() === "";
+          const notes = item.notes.trim();
+          const empty = notes === "";
+          const conclusion = summarizeConclusion(item.notes);
           const over = item.elapsedSeconds > item.allocatedSeconds;
 
           return (
@@ -73,14 +76,24 @@ export function FinishedScreen({
                   {formatClock(item.allocatedSeconds)}
                 </span>
                 {over && <Badge variant="destructive">시간 초과</Badge>}
-                {empty && <Badge variant="outline">결론 없음</Badge>}
+                {empty && <Badge variant="outline">논의사항 없음</Badge>}
               </div>
               {empty ? (
                 <p className="text-muted-foreground">
-                  이 주제는 결론을 남기지 않았습니다.
+                  이 주제는 논의사항을 남기지 않았습니다.
                 </p>
               ) : (
-                <p className="whitespace-pre-wrap">{item.conclusion}</p>
+                <div className="flex flex-col gap-2">
+                  <p data-testid="topic-conclusion">
+                    <span className="font-medium">결론</span> {conclusion}
+                  </p>
+                  <p
+                    data-testid="topic-notes"
+                    className="text-sm whitespace-pre-wrap text-muted-foreground"
+                  >
+                    {notes}
+                  </p>
+                </div>
               )}
             </li>
           );

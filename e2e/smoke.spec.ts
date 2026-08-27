@@ -64,8 +64,8 @@ test("주제를 등록하고 회의를 진행해 결론을 마크다운으로 �
   await expect(page.getByText("회의 전체")).toContainText("남음");
 
   await page
-    .getByLabel("이 주제의 결론")
-    .fill("다음 주 화요일 오전 배포로 확정");
+    .getByLabel("논의사항")
+    .fill("배포 후보를 검토함\n다음 주 화요일 오전 배포로 확정");
   await page.getByRole("button", { name: "다음 주제" }).click();
 
   // 두 번째 주제는 결론을 비운 채로 마친다.
@@ -75,8 +75,13 @@ test("주제를 등록하고 회의를 진행해 결론을 마크다운으로 �
   await page.getByRole("button", { name: "회의 마치기" }).click();
 
   await expect(page.getByRole("heading", { level: 1 })).toHaveText("회의 결론");
-  await expect(page.getByText("다음 주 화요일 오전 배포로 확정")).toBeVisible();
-  await expect(page.getByText("결론 없음")).toBeVisible();
+  await expect(page.getByTestId("topic-conclusion").first()).toContainText(
+    "다음 주 화요일 오전 배포로 확정",
+  );
+  await expect(page.getByTestId("topic-notes").first()).toContainText(
+    "배포 후보를 검토함",
+  );
+  await expect(page.getByText("논의사항 없음")).toBeVisible();
 
   await page.getByRole("button", { name: "마크다운 복사" }).click();
   await expect(
@@ -87,7 +92,7 @@ test("주제를 등록하고 회의를 진행해 결론을 마크다운으로 �
   expect(copied).toContain("## 배포 일정 확정");
   expect(copied).toContain("다음 주 화요일 오전 배포로 확정");
   expect(copied).toContain("## 채용 진행 상황");
-  expect(copied).toContain("_결론 없음_");
+  expect(copied).toContain("_논의사항 없음_");
 });
 
 test("회의를 시작하기 전에는 주제를 고치고 지울 수 있다", async ({ page }) => {
@@ -118,14 +123,14 @@ test("진행 중인 회의는 새로고침해도 이어서 보인다", async ({ 
   await page.goto("/");
   await addAgendaItem(page, "배포 일정 확정", "10");
   await page.getByRole("button", { name: "회의 시작" }).click();
-  await page.getByLabel("이 주제의 결론").fill("작성 중인 결론");
+  await page.getByLabel("논의사항").fill("작성 중인 결론");
 
   await page.reload();
 
   await expect(page.getByRole("heading", { level: 1 })).toHaveText(
     "배포 일정 확정",
   );
-  await expect(page.getByLabel("이 주제의 결론")).toHaveValue("작성 중인 결론");
+  await expect(page.getByLabel("논의사항")).toHaveValue("작성 중인 결론");
 });
 
 test("일시정지하면 주제와 회의 전체의 시간이 모두 멈춘다", async ({ page }) => {
@@ -187,7 +192,7 @@ test("다음 주제로 갔다가 이전 주제로 돌아와 결론을 이어서 
   await page.getByRole("button", { name: "회의 시작" }).click();
 
   await expect(page.getByRole("button", { name: "이전 주제" })).toBeDisabled();
-  await page.getByLabel("이 주제의 결론").fill("화요일 배포로 확정");
+  await page.getByLabel("논의사항").fill("화요일 배포로 확정");
 
   await page.getByRole("button", { name: "다음 주제" }).click();
   await expect(page.getByRole("heading", { level: 1 })).toHaveText(
@@ -198,12 +203,10 @@ test("다음 주제로 갔다가 이전 주제로 돌아와 결론을 이어서 
   await expect(page.getByRole("heading", { level: 1 })).toHaveText(
     "배포 일정 확정",
   );
-  await expect(page.getByLabel("이 주제의 결론")).toHaveValue(
-    "화요일 배포로 확정",
-  );
+  await expect(page.getByLabel("논의사항")).toHaveValue("화요일 배포로 확정");
 
   await page
-    .getByLabel("이 주제의 결론")
+    .getByLabel("논의사항")
     .fill("화요일 배포로 확정. 롤백 담당은 지수.");
   await page.getByRole("button", { name: "다음 주제" }).click();
   await page.getByRole("button", { name: "회의 마치기" }).click();
@@ -266,7 +269,9 @@ test("새 회의 준비는 확인을 거치고, 취소하면 결론이 그대로
   await page.goto("/");
   await addAgendaItem(page, "배포 일정 확정", "10");
   await page.getByRole("button", { name: "회의 시작" }).click();
-  await page.getByLabel("이 주제의 결론").fill("화요일 배포로 확정");
+  await page
+    .getByLabel("논의사항")
+    .fill("화요일 배포로 확정. 롤백 담당은 지수.");
   await page.getByRole("button", { name: "회의 마치기" }).click();
 
   await page.getByRole("button", { name: "새 회의 준비" }).click();
@@ -275,7 +280,9 @@ test("새 회의 준비는 확인을 거치고, 취소하면 결론이 그대로
   ).toBeVisible();
 
   await page.getByRole("button", { name: "취소" }).click();
-  await expect(page.getByText("화요일 배포로 확정")).toBeVisible();
+  await expect(
+    page.getByText("화요일 배포로 확정. 롤백 담당은 지수."),
+  ).toBeVisible();
 
   await page.getByRole("button", { name: "새 회의 준비" }).click();
   await page.getByRole("button", { name: "새 회의 시작" }).click();
@@ -338,4 +345,48 @@ test("URL에서 가져온 영어 자료는 한국어로 번역된다", async ({ 
   await expect(
     page.getByText("깃허브는 사람들이 소프트웨어를 만드는 곳입니다."),
   ).toBeVisible();
+});
+
+test("배정 시간의 절반이 지나면 화면이 한 번 깜박인다", async ({ page }) => {
+  await page.goto("/");
+  await addAgendaItem(page, "배포 일정 확정", "10");
+  await page.getByRole("button", { name: "회의 시작" }).click();
+
+  await expect(page.getByTestId("halfway-flash")).toHaveCount(0);
+
+  await page.evaluate(() => {
+    const key = "meeting-timer:current";
+    const m = JSON.parse(localStorage.getItem(key)!);
+    m.items[0].elapsedSeconds = 301; // 10분의 절반(300초)을 막 넘김
+    m.runningSince = Date.now();
+    localStorage.setItem(key, JSON.stringify(m));
+  });
+  await page.reload();
+
+  await expect(page.getByTestId("halfway-flash")).toBeVisible();
+  await expect(page.getByTestId("halfway-flash")).toHaveCount(0, {
+    timeout: 2000,
+  });
+});
+
+test("남은 시간이 5분 이하가 되면 시계가 빨간색으로 바뀐다", async ({
+  page,
+}) => {
+  await page.goto("/");
+  await addAgendaItem(page, "배포 일정 확정", "10");
+  await page.getByRole("button", { name: "회의 시작" }).click();
+
+  const clock = page.getByLabel("남은 시간");
+  await expect(clock).not.toHaveClass(/text-destructive/);
+
+  await page.evaluate(() => {
+    const key = "meeting-timer:current";
+    const m = JSON.parse(localStorage.getItem(key)!);
+    m.items[0].elapsedSeconds = 301; // 남은 시간이 5분 아래로 내려감
+    m.runningSince = Date.now();
+    localStorage.setItem(key, JSON.stringify(m));
+  });
+  await page.reload();
+
+  await expect(clock).toHaveClass(/text-destructive/);
 });
