@@ -3,18 +3,24 @@ import { afterEach, beforeEach, expect, test, vi } from "vitest";
 
 import { MeetingScreens } from "./meeting-screens";
 
-function wikipediaReply(titles: string[]) {
+function wikipediaReply(title: string | null) {
   return {
     ok: true,
-    json: async () => ({
-      query: {
-        search: titles.map((title, index) => ({
-          pageid: index + 1,
-          title,
-          snippet: `${title} 요약`,
-        })),
-      },
-    }),
+    json: async () =>
+      title === null
+        ? { batchcomplete: "" }
+        : {
+            query: {
+              pages: {
+                "1": {
+                  pageid: 1,
+                  title,
+                  extract: `${title} 요약`,
+                  fullurl: `https://ko.wikipedia.org/wiki/${title}`,
+                },
+              },
+            },
+          },
   } as Response;
 }
 
@@ -23,7 +29,7 @@ beforeEach(() => {
   // 검사에서 실제 위키백과를 부르지 않는다.
   vi.stubGlobal(
     "fetch",
-    vi.fn(async () => wikipediaReply([]))
+    vi.fn(async () => wikipediaReply(null))
   );
 });
 
@@ -109,7 +115,7 @@ test("진행 중인 회의는 다시 그려도 이어서 보인다", () => {
 test("주제를 등록하면 찾은 자료를 주제 아래에 보여준다", async () => {
   vi.stubGlobal(
     "fetch",
-    vi.fn(async () => wikipediaReply(["스크럼 (소프트웨어 개발)"]))
+    vi.fn(async () => wikipediaReply("스크럼 (소프트웨어 개발)"))
   );
 
   render(<MeetingScreens />);
@@ -138,7 +144,7 @@ test("자료를 가져오지 못하면 다시 찾을 수 있다", async () => {
 
   vi.stubGlobal(
     "fetch",
-    vi.fn(async () => wikipediaReply(["소프트웨어 배포"]))
+    vi.fn(async () => wikipediaReply("소프트웨어 배포"))
   );
   fireEvent.click(screen.getByRole("button", { name: "다시 찾기" }));
 
@@ -151,7 +157,7 @@ test("찾은 자료가 없으면 없다고 알려준다", async () => {
 
   await waitFor(() =>
     expect(
-      screen.getByText("이 주제로 찾은 자료가 없습니다.")
+      screen.getByText("위키백과에 이 주제로 된 문서가 없습니다.")
     ).toBeInTheDocument()
   );
 });
