@@ -21,7 +21,7 @@ async function stubReferences(page: Page, title: string | null) {
                   },
                 },
               },
-            }
+            },
       ),
     });
   });
@@ -58,7 +58,7 @@ test("주제를 등록하고 회의를 진행해 결론을 마크다운으로 �
   await start.click();
 
   await expect(page.getByRole("heading", { level: 1 })).toHaveText(
-    "배포 일정 확정"
+    "배포 일정 확정",
   );
   await expect(page.getByLabel("남은 시간")).toHaveText("10:00");
   await expect(page.getByText("회의 전체")).toContainText("남음");
@@ -70,18 +70,18 @@ test("주제를 등록하고 회의를 진행해 결론을 마크다운으로 �
 
   // 두 번째 주제는 결론을 비운 채로 마친다.
   await expect(page.getByRole("heading", { level: 1 })).toHaveText(
-    "채용 진행 상황"
+    "채용 진행 상황",
   );
   await page.getByRole("button", { name: "회의 마치기" }).click();
 
   await expect(page.getByRole("heading", { level: 1 })).toHaveText("회의 결론");
-  await expect(
-    page.getByText("다음 주 화요일 오전 배포로 확정")
-  ).toBeVisible();
+  await expect(page.getByText("다음 주 화요일 오전 배포로 확정")).toBeVisible();
   await expect(page.getByText("결론 없음")).toBeVisible();
 
   await page.getByRole("button", { name: "마크다운 복사" }).click();
-  await expect(page.getByRole("button", { name: "복사했습니다" })).toBeVisible();
+  await expect(
+    page.getByRole("button", { name: "복사했습니다" }),
+  ).toBeVisible();
 
   const copied = await page.evaluate(() => navigator.clipboard.readText());
   expect(copied).toContain("## 배포 일정 확정");
@@ -123,7 +123,7 @@ test("진행 중인 회의는 새로고침해도 이어서 보인다", async ({ 
   await page.reload();
 
   await expect(page.getByRole("heading", { level: 1 })).toHaveText(
-    "배포 일정 확정"
+    "배포 일정 확정",
   );
   await expect(page.getByLabel("이 주제의 결론")).toHaveValue("작성 중인 결론");
 });
@@ -156,23 +156,25 @@ test("회의를 시작하기 전에 주제 순서를 바꾼다", async ({ page }
   await addAgendaItem(page, "지난 스프린트 회고", "5");
 
   await expect(page.getByLabel("1번 주제 제목")).toHaveValue("배포 일정 확정");
-  await expect(page.getByRole("button", { name: "1번 주제 위로" })).toBeDisabled();
+  await expect(
+    page.getByRole("button", { name: "1번 주제 위로" }),
+  ).toBeDisabled();
 
   await page.getByRole("button", { name: "3번 주제 위로" }).click();
   await expect(page.getByLabel("2번 주제 제목")).toHaveValue(
-    "지난 스프린트 회고"
+    "지난 스프린트 회고",
   );
   await expect(page.getByLabel("3번 주제 제목")).toHaveValue("채용 진행 상황");
 
   await page.getByRole("button", { name: "1번 주제 아래로" }).click();
   await expect(page.getByLabel("1번 주제 제목")).toHaveValue(
-    "지난 스프린트 회고"
+    "지난 스프린트 회고",
   );
 
   // 바뀐 순서대로 회의가 진행된다.
   await page.getByRole("button", { name: "회의 시작" }).click();
   await expect(page.getByRole("heading", { level: 1 })).toHaveText(
-    "지난 스프린트 회고"
+    "지난 스프린트 회고",
   );
 });
 
@@ -189,15 +191,15 @@ test("다음 주제로 갔다가 이전 주제로 돌아와 결론을 이어서 
 
   await page.getByRole("button", { name: "다음 주제" }).click();
   await expect(page.getByRole("heading", { level: 1 })).toHaveText(
-    "채용 진행 상황"
+    "채용 진행 상황",
   );
 
   await page.getByRole("button", { name: "이전 주제" }).click();
   await expect(page.getByRole("heading", { level: 1 })).toHaveText(
-    "배포 일정 확정"
+    "배포 일정 확정",
   );
   await expect(page.getByLabel("이 주제의 결론")).toHaveValue(
-    "화요일 배포로 확정"
+    "화요일 배포로 확정",
   );
 
   await page
@@ -207,7 +209,7 @@ test("다음 주제로 갔다가 이전 주제로 돌아와 결론을 이어서 
   await page.getByRole("button", { name: "회의 마치기" }).click();
 
   await expect(
-    page.getByText("화요일 배포로 확정. 롤백 담당은 지수.")
+    page.getByText("화요일 배포로 확정. 롤백 담당은 지수."),
   ).toBeVisible();
 });
 
@@ -228,17 +230,17 @@ test("주제를 등록하면 공개 웹에서 찾은 자료가 주제에 붙는�
 
   const references = page.getByLabel("1번 주제 배경 자료");
   await expect(
-    references.getByRole("link", { name: /스크럼 \(소프트웨어 개발\)/ })
+    references.getByRole("link", { name: /스크럼 \(소프트웨어 개발\)/ }),
   ).toBeVisible();
   await expect(
-    references.getByText("스크럼 (소프트웨어 개발) 요약")
+    references.getByText("스크럼 (소프트웨어 개발) 요약"),
   ).toBeVisible();
 
   // 회의 중에도 그 주제의 자료를 함께 본다.
   await page.getByRole("button", { name: "회의 시작" }).click();
   const running = page.getByLabel("이 주제의 배경 자료");
   await expect(
-    running.getByRole("link", { name: /스크럼 \(소프트웨어 개발\)/ })
+    running.getByRole("link", { name: /스크럼 \(소프트웨어 개발\)/ }),
   ).toBeVisible();
 });
 
@@ -247,14 +249,14 @@ test("찾은 자료가 없으면 없다고 알리고 다시 찾을 수 있다", 
   await addAgendaItem(page, "사내 전용 용어", "10");
 
   await expect(
-    page.getByText("위키백과에 이 주제로 된 문서가 없습니다.")
+    page.getByText("위키백과에 이 주제로 된 문서가 없습니다."),
   ).toBeVisible();
 
   await stubReferences(page, "소프트웨어 배포");
   await page.getByRole("button", { name: "다시 찾기" }).click();
 
   await expect(
-    page.getByRole("link", { name: /소프트웨어 배포/ })
+    page.getByRole("link", { name: /소프트웨어 배포/ }),
   ).toBeVisible();
 });
 
@@ -269,7 +271,7 @@ test("새 회의 준비는 확인을 거치고, 취소하면 결론이 그대로
 
   await page.getByRole("button", { name: "새 회의 준비" }).click();
   await expect(
-    page.getByText("정말 새 회의를 시작하시겠습니까?")
+    page.getByText("정말 새 회의를 시작하시겠습니까?"),
   ).toBeVisible();
 
   await page.getByRole("button", { name: "취소" }).click();
@@ -277,7 +279,9 @@ test("새 회의 준비는 확인을 거치고, 취소하면 결론이 그대로
 
   await page.getByRole("button", { name: "새 회의 준비" }).click();
   await page.getByRole("button", { name: "새 회의 시작" }).click();
-  await expect(page.getByRole("heading", { level: 1 })).toHaveText("회의 준비");
+  await expect(page.getByRole("heading", { level: 1 })).toHaveText(
+    "포모도로 미팅 타이머",
+  );
   await expect(page.getByText("아직 등록한 주제가 없습니다.")).toBeVisible();
 
   // 확인 뒤 새로고침해도 지난 회의가 되살아나지 않는다.
@@ -293,6 +297,45 @@ test("내부망 주소는 안전하지 않아 자료를 가져오지 않는다",
   await url.blur();
 
   await expect(
-    page.getByText("넣어 둔 URL에서 자료를 가져오지 못했습니다.")
+    page.getByText("넣어 둔 URL에서 자료를 가져오지 못했습니다."),
+  ).toBeVisible();
+});
+
+test("URL에서 가져온 영어 자료는 한국어로 번역된다", async ({ page }) => {
+  await page.route("**/api/link-preview*", (route) =>
+    route.fulfill({
+      contentType: "application/json",
+      body: JSON.stringify({
+        title: "Build software better, together",
+        summary: "GitHub is where people build software.",
+        url: "https://example.com/",
+      }),
+    }),
+  );
+  await page.route("**mymemory.translated.net/**", (route) => {
+    const query = new URL(route.request().url()).searchParams.get("q") ?? "";
+    const translated = query.startsWith("Build")
+      ? "함께 소프트웨어를 더 잘 만드세요"
+      : "깃허브는 사람들이 소프트웨어를 만드는 곳입니다.";
+    return route.fulfill({
+      contentType: "application/json",
+      body: JSON.stringify({
+        responseStatus: 200,
+        responseData: { translatedText: translated },
+      }),
+    });
+  });
+
+  await page.goto("/");
+  await addAgendaItem(page, "깃허브 소개", "10");
+  const url = page.getByLabel("1번 주제 자료 URL");
+  await url.fill("https://example.com/");
+  await url.blur();
+
+  await expect(
+    page.getByText("함께 소프트웨어를 더 잘 만드세요"),
+  ).toBeVisible();
+  await expect(
+    page.getByText("깃허브는 사람들이 소프트웨어를 만드는 곳입니다."),
   ).toBeVisible();
 });

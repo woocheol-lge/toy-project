@@ -114,9 +114,9 @@ export function SetupScreen({ controller }: { controller: MeetingController }) {
   return (
     <div className="mx-auto flex w-full max-w-3xl flex-col gap-8 px-6 py-12">
       <header className="flex flex-col gap-1">
-        <h1 className="text-3xl font-semibold">회의 준비</h1>
+        <h1 className="text-3xl font-semibold">포모도로 미팅 타이머</h1>
         <p className="text-muted-foreground">
-          오늘 다룰 주제와 주제마다 쓸 시간을 정해 두세요.
+          주제와 시간만 정하면, 나머지는 타이머가 굴려 드립니다.
         </p>
       </header>
 

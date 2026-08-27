@@ -29,7 +29,7 @@ beforeEach(() => {
   // 검사에서 실제 위키백과를 부르지 않는다.
   vi.stubGlobal(
     "fetch",
-    vi.fn(async () => wikipediaReply(null))
+    vi.fn(async () => wikipediaReply(null)),
   );
 });
 
@@ -56,7 +56,7 @@ test("주제가 없으면 회의를 시작할 수 없다", () => {
   render(<MeetingScreens />);
 
   expect(
-    screen.getByRole("heading", { level: 1, name: "회의 준비" })
+    screen.getByRole("heading", { level: 1, name: "포모도로 미팅 타이머" }),
   ).toBeInTheDocument();
   expect(screen.getByRole("button", { name: "회의 시작" })).toBeDisabled();
 });
@@ -70,7 +70,7 @@ test("주제를 등록하고 회의를 시작하면 첫 주제와 남은 시간�
   fireEvent.click(start);
 
   expect(
-    screen.getByRole("heading", { level: 1, name: "배포 일정" })
+    screen.getByRole("heading", { level: 1, name: "배포 일정" }),
   ).toBeInTheDocument();
   expect(screen.getByLabelText("남은 시간")).toHaveTextContent("10:00");
 });
@@ -86,7 +86,7 @@ test("결론을 적고 마치면 종료 화면에 그 결론이 남는다", () =
   fireEvent.click(screen.getByRole("button", { name: /회의 마치기/ }));
 
   expect(
-    screen.getByRole("heading", { level: 1, name: "회의 결론" })
+    screen.getByRole("heading", { level: 1, name: "회의 결론" }),
   ).toBeInTheDocument();
   expect(screen.getByText("다음 주 화요일 배포로 확정")).toBeInTheDocument();
 });
@@ -112,7 +112,7 @@ test("진행 중인 회의는 다시 그려도 이어서 보인다", () => {
   render(<MeetingScreens />);
 
   expect(
-    screen.getByRole("heading", { level: 1, name: "배포 일정" })
+    screen.getByRole("heading", { level: 1, name: "배포 일정" }),
   ).toBeInTheDocument();
   expect(screen.getByLabelText("이 주제의 결론")).toHaveValue("작성 중인 결론");
 });
@@ -120,16 +120,16 @@ test("진행 중인 회의는 다시 그려도 이어서 보인다", () => {
 test("주제를 등록하면 찾은 자료를 주제 아래에 보여준다", async () => {
   vi.stubGlobal(
     "fetch",
-    vi.fn(async () => wikipediaReply("스크럼 (소프트웨어 개발)"))
+    vi.fn(async () => wikipediaReply("스크럼 (소프트웨어 개발)")),
   );
 
   render(<MeetingScreens />);
   addAgendaItem("스크럼 회고", "10");
 
-  expect(await screen.findByText("스크럼 (소프트웨어 개발)")).toBeInTheDocument();
   expect(
-    screen.getByText("스크럼 (소프트웨어 개발) 요약")
+    await screen.findByText("스크럼 (소프트웨어 개발)"),
   ).toBeInTheDocument();
+  expect(screen.getByText("스크럼 (소프트웨어 개발) 요약")).toBeInTheDocument();
 });
 
 test("자료를 가져오지 못하면 다시 찾을 수 있다", async () => {
@@ -137,19 +137,19 @@ test("자료를 가져오지 못하면 다시 찾을 수 있다", async () => {
     "fetch",
     vi.fn(async () => {
       throw new Error("네트워크 없음");
-    })
+    }),
   );
 
   render(<MeetingScreens />);
   addAgendaItem("배포 일정", "10");
 
   expect(
-    await screen.findByText("자료를 가져오지 못했습니다.")
+    await screen.findByText("자료를 가져오지 못했습니다."),
   ).toBeInTheDocument();
 
   vi.stubGlobal(
     "fetch",
-    vi.fn(async () => wikipediaReply("소프트웨어 배포"))
+    vi.fn(async () => wikipediaReply("소프트웨어 배포")),
   );
   fireEvent.click(screen.getByRole("button", { name: "다시 찾기" }));
 
@@ -162,8 +162,8 @@ test("찾은 자료가 없으면 없다고 알려준다", async () => {
 
   await waitFor(() =>
     expect(
-      screen.getByText("위키백과에 이 주제로 된 문서가 없습니다.")
-    ).toBeInTheDocument()
+      screen.getByText("위키백과에 이 주제로 된 문서가 없습니다."),
+    ).toBeInTheDocument(),
   );
 });
 
@@ -176,13 +176,13 @@ test("새 회의 준비를 누르면 확인을 받고, 취소하면 결론이 �
   fireEvent.click(screen.getByRole("button", { name: "새 회의 준비" }));
 
   expect(
-    screen.getByText("정말 새 회의를 시작하시겠습니까?")
+    screen.getByText("정말 새 회의를 시작하시겠습니까?"),
   ).toBeInTheDocument();
 
   fireEvent.click(screen.getByRole("button", { name: "취소" }));
 
   expect(
-    screen.getByRole("heading", { level: 1, name: "회의 결론" })
+    screen.getByRole("heading", { level: 1, name: "회의 결론" }),
   ).toBeInTheDocument();
 });
 
@@ -196,12 +196,15 @@ test("확인 창에서 승낙하면 결론이 사라지고 준비 화면으로 �
   fireEvent.click(screen.getByRole("button", { name: "새 회의 시작" }));
 
   expect(
-    screen.getByRole("heading", { level: 1, name: "회의 준비" })
+    screen.getByRole("heading", { level: 1, name: "포모도로 미팅 타이머" }),
   ).toBeInTheDocument();
   expect(screen.getByText("아직 등록한 주제가 없습니다.")).toBeInTheDocument();
 });
 
-function linkPreviewReply(ok: boolean, body?: { title: string; summary: string; url: string }) {
+function linkPreviewReply(
+  ok: boolean,
+  body?: { title: string; summary: string; url: string },
+) {
   return {
     ok,
     status: ok ? 200 : 400,
@@ -222,7 +225,7 @@ test("자료 URL을 넣으면 그 페이지에서 가져온 자료가 보인다"
         });
       }
       return wikipediaReply(null);
-    })
+    }),
   );
 
   render(<MeetingScreens />);
@@ -230,9 +233,9 @@ test("자료 URL을 넣으면 그 페이지에서 가져온 자료가 보인다"
 
   expect(await screen.findByText("배포 체크리스트")).toBeInTheDocument();
   expect(
-    screen.getByText("배포 전 확인할 항목을 정리한 문서입니다.")
+    screen.getByText("배포 전 확인할 항목을 정리한 문서입니다."),
   ).toBeInTheDocument();
-  expect(screen.getByText("넣어 둔 URL에서 가져온 자료입니다.")).toBeInTheDocument();
+  expect(screen.getByText("추가 정보")).toBeInTheDocument();
 });
 
 test("자료 URL을 가져오지 못하면 다시 찾을 수 있고, 성공하면 자료로 바뀐다", async () => {
@@ -242,14 +245,14 @@ test("자료 URL을 가져오지 못하면 다시 찾을 수 있고, 성공하�
       const url = String(input);
       if (url.includes("/api/link-preview")) return linkPreviewReply(false);
       return wikipediaReply(null);
-    })
+    }),
   );
 
   render(<MeetingScreens />);
   addAgendaItem("배포 일정 확정", "10", "https://example.com/broken");
 
   expect(
-    await screen.findByText("넣어 둔 URL에서 자료를 가져오지 못했습니다.")
+    await screen.findByText("넣어 둔 URL에서 자료를 가져오지 못했습니다."),
   ).toBeInTheDocument();
 
   vi.stubGlobal(
@@ -264,7 +267,7 @@ test("자료 URL을 가져오지 못하면 다시 찾을 수 있고, 성공하�
         });
       }
       return wikipediaReply(null);
-    })
+    }),
   );
   fireEvent.click(screen.getByRole("button", { name: "다시 찾기" }));
 
@@ -284,7 +287,7 @@ test("주제를 등록한 뒤에도 자료 URL을 넣으면 자동 검색 대신
         });
       }
       return wikipediaReply("엉뚱한 위키 문서");
-    })
+    }),
   );
 
   render(<MeetingScreens />);
@@ -299,4 +302,44 @@ test("주제를 등록한 뒤에도 자료 URL을 넣으면 자동 검색 대신
 
   expect(await screen.findByText("나중에 넣은 자료")).toBeInTheDocument();
   expect(screen.queryByText("엉뚱한 위키 문서")).not.toBeInTheDocument();
+});
+
+test("URL에서 가져온 영어 자료는 한국어로 번역되어 보인다", async () => {
+  vi.stubGlobal(
+    "fetch",
+    vi.fn(async (input: RequestInfo | URL) => {
+      const url = String(input);
+      if (url.includes("/api/link-preview")) {
+        return linkPreviewReply(true, {
+          title: "Build software better, together",
+          summary: "GitHub is where people build software.",
+          url: "https://example.com/",
+        });
+      }
+      if (url.includes("mymemory.translated.net")) {
+        const query = new URL(url).searchParams.get("q") ?? "";
+        const translated = query.startsWith("Build")
+          ? "함께 소프트웨어를 더 잘 만드세요"
+          : "깃허브는 사람들이 소프트웨어를 만드는 곳입니다.";
+        return {
+          ok: true,
+          json: async () => ({
+            responseStatus: 200,
+            responseData: { translatedText: translated },
+          }),
+        } as Response;
+      }
+      return wikipediaReply(null);
+    }),
+  );
+
+  render(<MeetingScreens />);
+  addAgendaItem("깃허브 소개", "10", "https://example.com/");
+
+  expect(
+    await screen.findByText("함께 소프트웨어를 더 잘 만드세요"),
+  ).toBeInTheDocument();
+  expect(
+    screen.getByText("깃허브는 사람들이 소프트웨어를 만드는 곳입니다."),
+  ).toBeInTheDocument();
 });

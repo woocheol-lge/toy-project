@@ -28,6 +28,7 @@ import {
 } from "./meeting-state";
 import { fetchLinkPreview, searchReferences } from "./references";
 import { isFetchableUrl } from "./link-preview";
+import { translateToKorean } from "./translate";
 import { clearMeeting, loadMeeting, saveMeeting } from "./storage";
 import type { AgendaItem, Meeting, Reference } from "./types";
 
@@ -70,8 +71,17 @@ export function useMeeting() {
 
       found
         .then((references) =>
+          Promise.all(
+            references.map(async (reference) => ({
+              ...reference,
+              title: await translateToKorean(reference.title),
+              summary: await translateToKorean(reference.summary),
+            })),
+          ),
+        )
+        .then((translated) =>
           setMeeting((previous) =>
-            setReferences(previous, item.id, references),
+            setReferences(previous, item.id, translated),
           ),
         )
         .catch(() =>
