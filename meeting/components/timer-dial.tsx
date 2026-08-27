@@ -23,6 +23,7 @@ function pieSlicePath(ratio: number): string | null {
 /**
  * 포모도로 타이머처럼 가득 찬 빨간 원이 시간이 갈수록 파이 조각으로 줄어든다.
  * 배정 시간을 넘기면 빨간 조각은 남지 않고, 테두리가 초과를 알린다.
+ * 색은 theme의 destructive 토큰(LG 레드)을 그대로 따른다.
  */
 export function TimerDial({
   remainingRatio,
