@@ -1,5 +1,16 @@
 import Image from "next/image";
 
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+
 export default function Home() {
   return (
     <div className="flex flex-col flex-1 items-center justify-center bg-zinc-50 font-sans dark:bg-black">
@@ -63,6 +74,30 @@ export default function Home() {
             Documentation
           </a>
         </div>
+        <Card className="w-full">
+          <CardHeader>
+            <CardTitle>shadcn 테마 미리보기</CardTitle>
+            <CardDescription>
+              적용된 프리셋의 색상, radius, 폰트를 확인하는 컴포넌트입니다.
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="flex flex-col gap-4">
+            <div className="flex flex-wrap items-center gap-2">
+              <Button variant="default">Default</Button>
+              <Button variant="secondary">Secondary</Button>
+              <Button variant="outline">Outline</Button>
+              <Button variant="ghost">Ghost</Button>
+              <Button variant="destructive">Destructive</Button>
+            </div>
+            <div className="flex flex-wrap items-center gap-2">
+              <Badge variant="default">Default</Badge>
+              <Badge variant="secondary">Secondary</Badge>
+              <Badge variant="outline">Outline</Badge>
+              <Badge variant="destructive">Destructive</Badge>
+            </div>
+            <Input placeholder="테마가 적용된 입력창입니다" />
+          </CardContent>
+        </Card>
       </main>
     </div>
   );
