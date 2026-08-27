@@ -25,7 +25,7 @@ export function ReferenceList({
         <p className="text-muted-foreground">
           {item.referenceStatus === "failed"
             ? "자료를 가져오지 못했습니다."
-            : "이 주제로 찾은 자료가 없습니다."}
+            : "위키백과에 이 주제로 된 문서가 없습니다."}
         </p>
         <Button type="button" variant="outline" onClick={onRetry}>
           <RefreshCw />
@@ -38,7 +38,7 @@ export function ReferenceList({
   return (
     <div className="flex flex-col gap-2">
       <p className="text-sm text-muted-foreground">
-        위키백과에서 찾은 문서입니다. 주제와 상관없는 것이 섞일 수 있습니다.
+        위키백과에서 찾은 문서입니다.
       </p>
       <ul className="flex flex-col gap-3">
         {item.references.map((reference) => (

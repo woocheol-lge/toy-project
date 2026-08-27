@@ -3,25 +3,32 @@ import { expect, test, type Page } from "@playwright/test";
 const WIKIPEDIA = "https://ko.wikipedia.org/w/api.php*";
 
 /** 검사가 바깥 네트워크에 기대지 않도록 위키백과 응답을 정해 둔다. */
-async function stubReferences(page: Page, titles: string[]) {
+async function stubReferences(page: Page, title: string | null) {
   await page.route(WIKIPEDIA, async (route) => {
     await route.fulfill({
       contentType: "application/json",
-      body: JSON.stringify({
-        query: {
-          search: titles.map((title, index) => ({
-            pageid: index + 1,
-            title,
-            snippet: `<span class="searchmatch">${title}</span> 요약`,
-          })),
-        },
-      }),
+      body: JSON.stringify(
+        title === null
+          ? { batchcomplete: "" }
+          : {
+              query: {
+                pages: {
+                  "1": {
+                    pageid: 1,
+                    title,
+                    extract: `${title} 요약`,
+                    fullurl: `https://ko.wikipedia.org/wiki/${encodeURIComponent(title)}`,
+                  },
+                },
+              },
+            }
+      ),
     });
   });
 }
 
 test.beforeEach(async ({ page }) => {
-  await stubReferences(page, []);
+  await stubReferences(page, null);
 });
 
 async function addAgendaItem(page: Page, title: string, minutes: string) {
@@ -215,7 +222,7 @@ test("회의 중에는 지금 시각이 함께 보인다", async ({ page }) => {
 test("주제를 등록하면 공개 웹에서 찾은 자료가 주제에 붙는다", async ({
   page,
 }) => {
-  await stubReferences(page, ["스크럼 (소프트웨어 개발)", "회고"]);
+  await stubReferences(page, "스크럼 (소프트웨어 개발)");
   await page.goto("/");
   await addAgendaItem(page, "스크럼 회고", "10");
 
@@ -223,7 +230,9 @@ test("주제를 등록하면 공개 웹에서 찾은 자료가 주제에 붙는�
   await expect(
     references.getByRole("link", { name: /스크럼 \(소프트웨어 개발\)/ })
   ).toBeVisible();
-  await expect(references.getByText("회고 요약")).toBeVisible();
+  await expect(
+    references.getByText("스크럼 (소프트웨어 개발) 요약")
+  ).toBeVisible();
 
   // 회의 중에도 그 주제의 자료를 함께 본다.
   await page.getByRole("button", { name: "회의 시작" }).click();
@@ -237,9 +246,11 @@ test("찾은 자료가 없으면 없다고 알리고 다시 찾을 수 있다", 
   await page.goto("/");
   await addAgendaItem(page, "사내 전용 용어", "10");
 
-  await expect(page.getByText("이 주제로 찾은 자료가 없습니다.")).toBeVisible();
+  await expect(
+    page.getByText("위키백과에 이 주제로 된 문서가 없습니다.")
+  ).toBeVisible();
 
-  await stubReferences(page, ["소프트웨어 배포"]);
+  await stubReferences(page, "소프트웨어 배포");
   await page.getByRole("button", { name: "다시 찾기" }).click();
 
   await expect(
