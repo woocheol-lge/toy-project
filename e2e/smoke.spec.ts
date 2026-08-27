@@ -221,7 +221,7 @@ test("회의 중에는 지금 시각이 함께 보인다", async ({ page }) => {
   await addAgendaItem(page, "배포 일정 확정", "10");
   await page.getByRole("button", { name: "회의 시작" }).click();
 
-  await expect(page.getByText(/^지금 \d{2}:\d{2}$/)).toBeVisible();
+  await expect(page.getByLabel("지금 시각")).toHaveText(/^\d{2}:\d{2}$/);
 });
 
 test("주제를 등록하면 공개 웹에서 찾은 자료가 주제에 붙는다", async ({
