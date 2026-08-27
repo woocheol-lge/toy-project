@@ -15,13 +15,13 @@ export function createEmptyMeeting(): Meeting {
 
 export function addItem(
   meeting: Meeting,
-  input: { title: string; allocatedSeconds?: number; sourceUrl?: string }
+  input: { title: string; allocatedSeconds?: number; sourceUrl?: string },
 ): Meeting {
   const item: AgendaItem = {
     id: createId(),
     title: input.title,
     allocatedSeconds: input.allocatedSeconds ?? DEFAULT_ALLOCATED_SECONDS,
-    conclusion: "",
+    notes: "",
     elapsedSeconds: 0,
     references: [],
     referenceStatus: "idle",
@@ -34,12 +34,12 @@ export function addItem(
 export function updateItem(
   meeting: Meeting,
   id: string,
-  patch: Partial<Pick<AgendaItem, "title" | "allocatedSeconds" | "sourceUrl">>
+  patch: Partial<Pick<AgendaItem, "title" | "allocatedSeconds" | "sourceUrl">>,
 ): Meeting {
   return {
     ...meeting,
     items: meeting.items.map((item) =>
-      item.id === id ? { ...item, ...patch } : item
+      item.id === id ? { ...item, ...patch } : item,
     ),
   };
 }
@@ -52,7 +52,7 @@ export function removeItem(meeting: Meeting, id: string): Meeting {
 export function moveItem(
   meeting: Meeting,
   id: string,
-  direction: "up" | "down"
+  direction: "up" | "down",
 ): Meeting {
   if (meeting.phase !== "setup") return meeting;
 
@@ -71,12 +71,12 @@ export function moveItem(
 function patchItem(
   meeting: Meeting,
   id: string,
-  patch: Partial<AgendaItem>
+  patch: Partial<AgendaItem>,
 ): Meeting {
   return {
     ...meeting,
     items: meeting.items.map((item) =>
-      item.id === id ? { ...item, ...patch } : item
+      item.id === id ? { ...item, ...patch } : item,
     ),
   };
 }
@@ -89,7 +89,7 @@ export function resetReferences(meeting: Meeting, id: string): Meeting {
 export function setReferences(
   meeting: Meeting,
   id: string,
-  references: Reference[]
+  references: Reference[],
 ): Meeting {
   return patchItem(meeting, id, {
     references,
@@ -126,7 +126,7 @@ function commitRunningTime(meeting: Meeting, now: number): Meeting {
     items: meeting.items.map((item, index) =>
       index === meeting.currentIndex
         ? { ...item, elapsedSeconds: item.elapsedSeconds + ran }
-        : item
+        : item,
     ),
     runningSince: null,
   };
@@ -186,11 +186,11 @@ export function goToPrevious(meeting: Meeting, now: number): Meeting {
   };
 }
 
-export function setConclusion(meeting: Meeting, conclusion: string): Meeting {
+export function setNotes(meeting: Meeting, notes: string): Meeting {
   return {
     ...meeting,
     items: meeting.items.map((item, index) =>
-      index === meeting.currentIndex ? { ...item, conclusion } : item
+      index === meeting.currentIndex ? { ...item, notes } : item,
     ),
   };
 }
@@ -216,7 +216,7 @@ export function totalAllocatedSeconds(meeting: Meeting): number {
 export function totalElapsedSeconds(meeting: Meeting, now: number): number {
   const committed = meeting.items.reduce(
     (sum, item) => sum + item.elapsedSeconds,
-    0
+    0,
   );
 
   return committed + runningExtraSeconds(meeting, now);

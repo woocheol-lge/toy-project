@@ -1,5 +1,6 @@
 "use client";
 
+import { useEffect, useRef, useState } from "react";
 import { Pause, Play, SkipBack, SkipForward } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
@@ -11,21 +12,58 @@ import { ReferenceList } from "./reference-list";
 import { TimerDial } from "./timer-dial";
 import type { MeetingController } from "../use-meeting";
 
+/** 남은 시간이 이보다 적으면(초과 포함) 시계를 위험 색으로 바꾼다. */
+const DANGER_THRESHOLD_SECONDS = 5 * 60;
+
+/**
+ * 배정 시간의 절반을 넘긴 주제를 한 번만 표시하려고 id를 들고 있는다.
+ * 개발 모드의 StrictMode 이중 렌더링에서도 꺼지는 타이머가 취소되지
+ * 않도록, 정리 함수에서 타이머를 지우지 않고 그대로 끝까지 돈다.
+ */
+function useHalfwayFlash(itemId: string | undefined, halfwayPassed: boolean) {
+  const [flashing, setFlashing] = useState(false);
+  const flashed = useRef(new Set<string>());
+
+  useEffect(() => {
+    if (!itemId || !halfwayPassed || flashed.current.has(itemId)) return;
+
+    flashed.current.add(itemId);
+    setFlashing(true);
+    window.setTimeout(() => setFlashing(false), 900);
+  }, [itemId, halfwayPassed]);
+
+  return flashing;
+}
+
 export function RunningScreen({
   controller,
 }: {
   controller: MeetingController;
 }) {
   const item = controller.currentItem;
+
+  const halfwayPassed = Boolean(
+    item && controller.currentElapsedSeconds >= item.allocatedSeconds / 2,
+  );
+  const flashing = useHalfwayFlash(item?.id, halfwayPassed);
+
   if (!item) return null;
 
   const overtime = controller.currentOvertimeSeconds > 0;
+  const danger = controller.currentRemainingSeconds <= DANGER_THRESHOLD_SECONDS;
   const totalOvertime = controller.totalOvertimeSeconds > 0;
   const position = controller.meeting.currentIndex + 1;
   const count = controller.meeting.items.length;
 
   return (
     <div className="mx-auto flex w-full max-w-4xl flex-1 flex-col gap-6 px-6 py-8">
+      {flashing && (
+        <div
+          aria-hidden="true"
+          data-testid="halfway-flash"
+          className="pointer-events-none fixed inset-0 z-50 animate-halfway-flash bg-primary/25"
+        />
+      )}
       <header className="flex flex-wrap items-baseline justify-between gap-x-6 gap-y-1">
         <p className="text-lg text-muted-foreground tabular-nums">
           주제 {position} / {count}
@@ -40,7 +78,7 @@ export function RunningScreen({
           <p
             className={cn(
               "tabular-nums",
-              totalOvertime ? "text-destructive" : "text-muted-foreground"
+              totalOvertime ? "text-destructive" : "text-muted-foreground",
             )}
           >
             회의 전체{" "}
@@ -68,7 +106,7 @@ export function RunningScreen({
             <p
               className={cn(
                 "font-mono text-7xl leading-none font-bold tabular-nums sm:text-8xl",
-                overtime && "text-destructive"
+                danger && "text-destructive",
               )}
               aria-label={overtime ? "초과 시간" : "남은 시간"}
             >
@@ -79,12 +117,14 @@ export function RunningScreen({
             <p
               className={cn(
                 "text-lg",
-                overtime
+                danger
                   ? "font-medium text-destructive"
-                  : "text-muted-foreground"
+                  : "text-muted-foreground",
               )}
             >
-              {overtime ? "배정 시간을 넘겼습니다" : `배정 ${formatClock(item.allocatedSeconds)}`}
+              {overtime
+                ? "배정 시간을 넘겼습니다"
+                : `배정 ${formatClock(item.allocatedSeconds)}`}
             </p>
             {controller.paused && (
               <p className="text-lg font-medium">일시정지 중</p>
@@ -94,19 +134,19 @@ export function RunningScreen({
 
         {overtime && (
           <p className="text-lg font-medium text-destructive">
-            결론을 적고 넘어가세요.
+            논의사항을 적고 넘어가세요.
           </p>
         )}
       </section>
 
       <div className="grid flex-1 gap-6 md:grid-cols-2">
         <label className="flex flex-col gap-2">
-          <span className="text-base font-medium">이 주제의 결론</span>
+          <span className="text-base font-medium">논의사항</span>
           <Textarea
-            value={item.conclusion}
-            onChange={(event) => controller.writeConclusion(event.target.value)}
-            placeholder="논의하면서 정해진 것을 적어 두세요."
-            aria-label="이 주제의 결론"
+            value={item.notes}
+            onChange={(event) => controller.writeNotes(event.target.value)}
+            placeholder="회의 중 나온 이야기를 자유롭게 적어 두세요. 마지막 줄이 결론으로 정리됩니다."
+            aria-label="논의사항"
             className="min-h-32 text-base"
           />
         </label>

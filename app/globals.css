@@ -128,3 +128,30 @@
     @apply font-sans;
   }
 }
+
+/* 배정 시간의 절반을 넘긴 주제를 알리는 화면 전체 깜박임. 두 번 반짝이고 사라진다. */
+@keyframes halfway-flash {
+  0%,
+  100% {
+    opacity: 0;
+  }
+  15%,
+  45% {
+    opacity: 1;
+  }
+  30%,
+  60% {
+    opacity: 0;
+  }
+}
+
+.animate-halfway-flash {
+  animation: halfway-flash 900ms ease-in-out;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .animate-halfway-flash {
+    animation: none;
+    opacity: 0;
+  }
+}

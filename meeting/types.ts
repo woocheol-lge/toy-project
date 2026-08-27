@@ -12,8 +12,11 @@ export type AgendaItem = {
   title: string;
   /** 이 주제에 미리 정해둔 논의 시간(초). */
   allocatedSeconds: number;
-  /** 논의를 마치고 남기는 글. 비어 있을 수 있다. */
-  conclusion: string;
+  /**
+   * 회의 중 자유롭게 적는 논의 기록. 비어 있을 수 있다.
+   * 회의가 끝나면 이 글의 마지막 문장을 정리해 결론으로 보여준다.
+   */
+  notes: string;
   /** 타이머가 멈춘 시점까지 이 주제에 쌓인 시간(초). */
   elapsedSeconds: number;
   /** 주제를 이해하는 데 참고할 만한 공개 웹 문서. */

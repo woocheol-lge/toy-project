@@ -1,3 +1,4 @@
+import { summarizeConclusion } from "./conclusion";
 import type { Meeting } from "./types";
 
 /** 초를 시계 모양 문자열로 바꾼다. 한 시간을 넘으면 시간 자리를 붙인다. */
@@ -24,9 +25,12 @@ export function formatWallClock(at: number): string {
 export function toMarkdown(meeting: Meeting): string {
   const body = meeting.items
     .map((item) => {
-      const conclusion = item.conclusion.trim();
+      const notes = item.notes.trim();
+      if (notes === "") return `## ${item.title}\n\n_논의사항 없음_`;
 
-      return `## ${item.title}\n\n${conclusion === "" ? "_결론 없음_" : conclusion}`;
+      const conclusion = summarizeConclusion(item.notes);
+
+      return `## ${item.title}\n\n**결론:** ${conclusion}\n\n${notes}`;
     })
     .join("\n\n");
 

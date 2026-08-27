@@ -19,7 +19,7 @@ import {
   removeItem,
   resetReferences,
   resume,
-  setConclusion,
+  setNotes,
   setReferences,
   startMeeting,
   totalAllocatedSeconds,
@@ -119,6 +119,8 @@ export function useMeeting() {
     meeting,
     now,
     currentItem: item,
+    /** 이 주제에서 흐른 시간. 배정 시간을 넘겨도 계속 늘어난다. */
+    currentElapsedSeconds: elapsed,
     /** 남은 시간. 배정 시간을 넘기면 0이 된다. */
     currentRemainingSeconds: Math.max(0, allocated - elapsed),
     /** 배정 시간을 넘긴 만큼의 시간. 넘기지 않았으면 0이다. */
@@ -166,8 +168,8 @@ export function useMeeting() {
     resumeTimer: () => applyWithNow(resume),
     next: () => applyWithNow(goToNext),
     previous: () => applyWithNow(goToPrevious),
-    writeConclusion: (conclusion: string) =>
-      setMeeting((previous) => setConclusion(previous, conclusion)),
+    writeNotes: (notes: string) =>
+      setMeeting((previous) => setNotes(previous, notes)),
 
     reset: () => {
       lookedUp.current.clear();
