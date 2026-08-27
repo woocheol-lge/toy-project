@@ -42,9 +42,7 @@ export function ReferenceList({
   return (
     <div className="flex flex-col gap-2">
       <p className="text-sm text-muted-foreground">
-        {fromUrl
-          ? "넣어 둔 URL에서 가져온 자료입니다."
-          : "위키백과에서 찾은 문서입니다."}
+        {fromUrl ? "추가 정보" : "위키백과에서 찾은 문서입니다."}
       </p>
       <ul className="flex flex-col gap-3">
         {item.references.map((reference) => (
