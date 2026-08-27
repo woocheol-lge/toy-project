@@ -3,8 +3,19 @@
 import { useEffect, useState } from "react";
 import { Check, Copy } from "lucide-react";
 
-import { Button } from "@/components/ui/button";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 
 import { formatClock, toMarkdown } from "../format";
 import type { MeetingController } from "../use-meeting";
@@ -51,7 +62,10 @@ export function FinishedScreen({
           const over = item.elapsedSeconds > item.allocatedSeconds;
 
           return (
-            <li key={item.id} className="flex flex-col gap-2 rounded-md border p-4">
+            <li
+              key={item.id}
+              className="flex flex-col gap-2 rounded-md border p-4"
+            >
               <div className="flex flex-wrap items-center gap-2">
                 <h2 className="flex-1 text-xl font-medium">{item.title}</h2>
                 <span className="text-sm text-muted-foreground tabular-nums">
@@ -74,14 +88,40 @@ export function FinishedScreen({
       </ol>
 
       <footer className="flex flex-wrap items-center justify-between gap-4 border-t pt-6">
-        <Button
-          type="button"
-          variant="outline"
-          onClick={controller.reset}
-          className="h-11 px-5 text-base"
-        >
-          새 회의 준비
-        </Button>
+        <AlertDialog>
+          <AlertDialogTrigger
+            render={
+              <Button
+                type="button"
+                variant="outline"
+                className="h-11 px-5 text-base"
+              >
+                새 회의 준비
+              </Button>
+            }
+          />
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle>
+                정말 새 회의를 시작하시겠습니까?
+              </AlertDialogTitle>
+              <AlertDialogDescription>
+                지금 보이는 회의 결론이 사라지고 되돌릴 수 없습니다. 필요하다면
+                먼저 마크다운으로 복사해 두세요.
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogCancel
+                render={<Button variant="outline">취소</Button>}
+              />
+              <AlertDialogAction
+                render={
+                  <Button onClick={controller.reset}>새 회의 시작</Button>
+                }
+              />
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
         <div className="flex items-center gap-3">
           {copyState === "failed" && (
             <span className="text-sm text-destructive">

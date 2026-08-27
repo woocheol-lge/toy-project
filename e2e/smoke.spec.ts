@@ -257,3 +257,30 @@ test("찾은 자료가 없으면 없다고 알리고 다시 찾을 수 있다", 
     page.getByRole("link", { name: /소프트웨어 배포/ })
   ).toBeVisible();
 });
+
+test("새 회의 준비는 확인을 거치고, 취소하면 결론이 그대로 남는다", async ({
+  page,
+}) => {
+  await page.goto("/");
+  await addAgendaItem(page, "배포 일정 확정", "10");
+  await page.getByRole("button", { name: "회의 시작" }).click();
+  await page.getByLabel("이 주제의 결론").fill("화요일 배포로 확정");
+  await page.getByRole("button", { name: "회의 마치기" }).click();
+
+  await page.getByRole("button", { name: "새 회의 준비" }).click();
+  await expect(
+    page.getByText("정말 새 회의를 시작하시겠습니까?")
+  ).toBeVisible();
+
+  await page.getByRole("button", { name: "취소" }).click();
+  await expect(page.getByText("화요일 배포로 확정")).toBeVisible();
+
+  await page.getByRole("button", { name: "새 회의 준비" }).click();
+  await page.getByRole("button", { name: "새 회의 시작" }).click();
+  await expect(page.getByRole("heading", { level: 1 })).toHaveText("회의 준비");
+  await expect(page.getByText("아직 등록한 주제가 없습니다.")).toBeVisible();
+
+  // 확인 뒤 새로고침해도 지난 회의가 되살아나지 않는다.
+  await page.reload();
+  await expect(page.getByText("아직 등록한 주제가 없습니다.")).toBeVisible();
+});
