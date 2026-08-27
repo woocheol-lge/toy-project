@@ -57,6 +57,25 @@ describe("회의 준비", () => {
   test("회의 전체 배정 시간은 주제 배정 시간의 합이다", () => {
     expect(totalAllocatedSeconds(meetingWithItems())).toBe(1800);
   });
+
+  test("자료 URL을 넣지 않으면 빈 문자열이고, 넣으면 그대로 저장된다", () => {
+    const noUrl = addItem(createEmptyMeeting(), {
+      title: "배포 일정",
+      allocatedSeconds: 600,
+    });
+    expect(noUrl.items[0].sourceUrl).toBe("");
+
+    let withUrl = addItem(createEmptyMeeting(), {
+      title: "배포 일정",
+      allocatedSeconds: 600,
+      sourceUrl: "https://example.com/deploy",
+    });
+    expect(withUrl.items[0].sourceUrl).toBe("https://example.com/deploy");
+
+    const id = withUrl.items[0].id;
+    withUrl = updateItem(withUrl, id, { sourceUrl: "https://example.com/updated" });
+    expect(withUrl.items[0].sourceUrl).toBe("https://example.com/updated");
+  });
 });
 
 describe("회의 진행", () => {

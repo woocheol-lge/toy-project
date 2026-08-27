@@ -37,13 +37,18 @@ afterEach(() => {
   vi.unstubAllGlobals();
 });
 
-function addAgendaItem(title: string, minutes: string) {
+function addAgendaItem(title: string, minutes: string, sourceUrl?: string) {
   fireEvent.change(screen.getByLabelText("주제 제목"), {
     target: { value: title },
   });
   fireEvent.change(screen.getByLabelText("주제 시간(분)"), {
     target: { value: minutes },
   });
+  if (sourceUrl !== undefined) {
+    fireEvent.change(screen.getByLabelText("자료 URL"), {
+      target: { value: sourceUrl },
+    });
+  }
   fireEvent.click(screen.getByRole("button", { name: "주제 추가" }));
 }
 
@@ -194,4 +199,104 @@ test("확인 창에서 승낙하면 결론이 사라지고 준비 화면으로 �
     screen.getByRole("heading", { level: 1, name: "회의 준비" })
   ).toBeInTheDocument();
   expect(screen.getByText("아직 등록한 주제가 없습니다.")).toBeInTheDocument();
+});
+
+function linkPreviewReply(ok: boolean, body?: { title: string; summary: string; url: string }) {
+  return {
+    ok,
+    status: ok ? 200 : 400,
+    json: async () => body ?? { error: "가져올 수 없는 주소입니다." },
+  } as Response;
+}
+
+test("자료 URL을 넣으면 그 페이지에서 가져온 자료가 보인다", async () => {
+  vi.stubGlobal(
+    "fetch",
+    vi.fn(async (input: RequestInfo | URL) => {
+      const url = String(input);
+      if (url.includes("/api/link-preview")) {
+        return linkPreviewReply(true, {
+          title: "배포 체크리스트",
+          summary: "배포 전 확인할 항목을 정리한 문서입니다.",
+          url: "https://example.com/checklist",
+        });
+      }
+      return wikipediaReply(null);
+    })
+  );
+
+  render(<MeetingScreens />);
+  addAgendaItem("배포 일정 확정", "10", "https://example.com/checklist");
+
+  expect(await screen.findByText("배포 체크리스트")).toBeInTheDocument();
+  expect(
+    screen.getByText("배포 전 확인할 항목을 정리한 문서입니다.")
+  ).toBeInTheDocument();
+  expect(screen.getByText("넣어 둔 URL에서 가져온 자료입니다.")).toBeInTheDocument();
+});
+
+test("자료 URL을 가져오지 못하면 다시 찾을 수 있고, 성공하면 자료로 바뀐다", async () => {
+  vi.stubGlobal(
+    "fetch",
+    vi.fn(async (input: RequestInfo | URL) => {
+      const url = String(input);
+      if (url.includes("/api/link-preview")) return linkPreviewReply(false);
+      return wikipediaReply(null);
+    })
+  );
+
+  render(<MeetingScreens />);
+  addAgendaItem("배포 일정 확정", "10", "https://example.com/broken");
+
+  expect(
+    await screen.findByText("넣어 둔 URL에서 자료를 가져오지 못했습니다.")
+  ).toBeInTheDocument();
+
+  vi.stubGlobal(
+    "fetch",
+    vi.fn(async (input: RequestInfo | URL) => {
+      const url = String(input);
+      if (url.includes("/api/link-preview")) {
+        return linkPreviewReply(true, {
+          title: "복구된 문서",
+          summary: "이번엔 성공했다.",
+          url: "https://example.com/broken",
+        });
+      }
+      return wikipediaReply(null);
+    })
+  );
+  fireEvent.click(screen.getByRole("button", { name: "다시 찾기" }));
+
+  expect(await screen.findByText("복구된 문서")).toBeInTheDocument();
+});
+
+test("주제를 등록한 뒤에도 자료 URL을 넣으면 자동 검색 대신 그 자료로 바뀐다", async () => {
+  vi.stubGlobal(
+    "fetch",
+    vi.fn(async (input: RequestInfo | URL) => {
+      const url = String(input);
+      if (url.includes("/api/link-preview")) {
+        return linkPreviewReply(true, {
+          title: "나중에 넣은 자료",
+          summary: "회의 준비 중에 추가했다.",
+          url: "https://example.com/later",
+        });
+      }
+      return wikipediaReply("엉뚱한 위키 문서");
+    })
+  );
+
+  render(<MeetingScreens />);
+  addAgendaItem("배포 일정 확정", "10");
+
+  expect(await screen.findByText("엉뚱한 위키 문서")).toBeInTheDocument();
+
+  fireEvent.change(screen.getByLabelText("1번 주제 자료 URL"), {
+    target: { value: "https://example.com/later" },
+  });
+  fireEvent.blur(screen.getByLabelText("1번 주제 자료 URL"));
+
+  expect(await screen.findByText("나중에 넣은 자료")).toBeInTheDocument();
+  expect(screen.queryByText("엉뚱한 위키 문서")).not.toBeInTheDocument();
 });

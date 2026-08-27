@@ -19,12 +19,16 @@ export function ReferenceList({
     );
   }
 
+  const fromUrl = item.sourceUrl.trim() !== "";
+
   if (item.referenceStatus === "failed" || item.referenceStatus === "empty") {
     return (
       <div className="flex flex-col items-start gap-3">
         <p className="text-muted-foreground">
           {item.referenceStatus === "failed"
-            ? "자료를 가져오지 못했습니다."
+            ? fromUrl
+              ? "넣어 둔 URL에서 자료를 가져오지 못했습니다."
+              : "자료를 가져오지 못했습니다."
             : "위키백과에 이 주제로 된 문서가 없습니다."}
         </p>
         <Button type="button" variant="outline" onClick={onRetry}>
@@ -38,7 +42,9 @@ export function ReferenceList({
   return (
     <div className="flex flex-col gap-2">
       <p className="text-sm text-muted-foreground">
-        위키백과에서 찾은 문서입니다.
+        {fromUrl
+          ? "넣어 둔 URL에서 가져온 자료입니다."
+          : "위키백과에서 찾은 문서입니다."}
       </p>
       <ul className="flex flex-col gap-3">
         {item.references.map((reference) => (

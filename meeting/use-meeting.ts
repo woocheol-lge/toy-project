@@ -26,9 +26,10 @@ import {
   totalElapsedSeconds,
   updateItem,
 } from "./meeting-state";
-import { searchReferences } from "./references";
+import { fetchLinkPreview, searchReferences } from "./references";
+import { isFetchableUrl } from "./link-preview";
 import { clearMeeting, loadMeeting, saveMeeting } from "./storage";
-import type { AgendaItem, Meeting } from "./types";
+import type { AgendaItem, Meeting, Reference } from "./types";
 
 /** 초 단위 숫자가 바뀌는 순간을 놓치지 않을 만큼 자주 다시 그린다. */
 const TICK_MS = 250;
@@ -36,7 +37,7 @@ const TICK_MS = 250;
 export function useMeeting() {
   // 이 훅은 브라우저에서만 처음 그려지므로 저장된 회의를 바로 읽어 들인다.
   const [meeting, setMeeting] = useState<Meeting>(
-    () => loadMeeting() ?? createEmptyMeeting()
+    () => loadMeeting() ?? createEmptyMeeting(),
   );
   const [now, setNow] = useState(() => Date.now());
 
@@ -47,23 +48,34 @@ export function useMeeting() {
   }, [meeting]);
 
   // 아직 자료를 찾지 않은 주제를 찾아 공개 웹 문서를 붙인다.
+  // 진행자가 자료 URL을 직접 줬으면 그 페이지를 가져오고, 아니면 위키백과에서 찾는다.
   useEffect(() => {
     const pending = meeting.items.filter(
       (item) =>
         item.referenceStatus === "idle" &&
         item.title.trim() !== "" &&
-        !lookedUp.current.has(item.id)
+        !lookedUp.current.has(item.id),
     );
 
     for (const item of pending) {
       lookedUp.current.add(item.id);
+      const sourceUrl = item.sourceUrl.trim();
 
-      searchReferences(item.title)
-        .then((found) =>
-          setMeeting((previous) => setReferences(previous, item.id, found))
+      const found: Promise<Reference[]> =
+        sourceUrl === ""
+          ? searchReferences(item.title)
+          : isFetchableUrl(sourceUrl)
+            ? fetchLinkPreview(sourceUrl).then((reference) => [reference])
+            : Promise.reject(new Error("가져올 수 없는 주소"));
+
+      found
+        .then((references) =>
+          setMeeting((previous) =>
+            setReferences(previous, item.id, references),
+          ),
         )
         .catch(() =>
-          setMeeting((previous) => markReferencesFailed(previous, item.id))
+          setMeeting((previous) => markReferencesFailed(previous, item.id)),
         );
     }
   }, [meeting.items]);
@@ -84,7 +96,7 @@ export function useMeeting() {
       setNow(at);
       setMeeting((previous) => transition(previous, at));
     },
-    []
+    [],
   );
 
   const item = currentItem(meeting);
@@ -103,7 +115,9 @@ export function useMeeting() {
     currentOvertimeSeconds: Math.max(0, elapsed - allocated),
     /** 이 주제에 남은 시간의 비율. 다 쓰면 0이다. */
     currentRemainingRatio:
-      allocated === 0 ? 0 : Math.min(1, Math.max(0, (allocated - elapsed) / allocated)),
+      allocated === 0
+        ? 0
+        : Math.min(1, Math.max(0, (allocated - elapsed) / allocated)),
     totalAllocatedSeconds: totalAllocated,
     totalRemainingSeconds: Math.max(0, totalAllocated - totalElapsed),
     totalOvertimeSeconds: Math.max(0, totalElapsed - totalAllocated),
@@ -112,11 +126,14 @@ export function useMeeting() {
     lastItem: isLastItem(meeting),
     startable: canStart(meeting),
 
-    addAgendaItem: (input: { title: string; allocatedSeconds?: number }) =>
-      setMeeting((previous) => addItem(previous, input)),
+    addAgendaItem: (input: {
+      title: string;
+      allocatedSeconds?: number;
+      sourceUrl?: string;
+    }) => setMeeting((previous) => addItem(previous, input)),
     updateAgendaItem: (
       id: string,
-      patch: Partial<Pick<AgendaItem, "title" | "allocatedSeconds">>
+      patch: Partial<Pick<AgendaItem, "title" | "allocatedSeconds">>,
     ) => setMeeting((previous) => updateItem(previous, id, patch)),
     removeAgendaItem: (id: string) =>
       setMeeting((previous) => removeItem(previous, id)),
@@ -125,6 +142,13 @@ export function useMeeting() {
     lookUpReferencesAgain: (id: string) => {
       lookedUp.current.delete(id);
       setMeeting((previous) => resetReferences(previous, id));
+    },
+    /** 자료 URL을 바꾸면 그 주소를 다시 가져오도록 조회 상태를 초기화한다. */
+    setAgendaItemSourceUrl: (id: string, sourceUrl: string) => {
+      lookedUp.current.delete(id);
+      setMeeting((previous) =>
+        resetReferences(updateItem(previous, id, { sourceUrl }), id),
+      );
     },
 
     start: () => applyWithNow(startMeeting),

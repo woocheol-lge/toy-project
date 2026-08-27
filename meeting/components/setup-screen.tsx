@@ -14,6 +14,41 @@ import type { MeetingController } from "../use-meeting";
 const DEFAULT_MINUTES = DEFAULT_ALLOCATED_SECONDS / 60;
 
 /**
+ * URL을 바꾸면 다시 가져오는 네트워크 요청이 걸리므로, 타이핑마다가 아니라
+ * 입력을 마쳤을 때(포커스를 벗어나거나 Enter)만 반영한다.
+ */
+function SourceUrlInput({
+  value,
+  onCommit,
+  label,
+}: {
+  value: string;
+  onCommit: (value: string) => void;
+  label: string;
+}) {
+  const [draft, setDraft] = useState(value);
+
+  function commitIfChanged() {
+    if (draft.trim() !== value) onCommit(draft.trim());
+  }
+
+  return (
+    <Input
+      value={draft}
+      onChange={(event) => setDraft(event.target.value)}
+      onBlur={commitIfChanged}
+      onKeyDown={(event) => {
+        if (event.key !== "Enter") return;
+        event.preventDefault();
+        commitIfChanged();
+      }}
+      placeholder="비워두면 위키백과에서 자동으로 찾습니다"
+      aria-label={label}
+    />
+  );
+}
+
+/**
  * 지웠다가 다시 치는 편집을 막지 않도록 입력칸 글자를 그대로 들고 있는다.
  * 쓸 수 있는 숫자가 됐을 때만 주제에 반영한다.
  */
@@ -57,6 +92,7 @@ function MinutesInput({
 export function SetupScreen({ controller }: { controller: MeetingController }) {
   const [title, setTitle] = useState("");
   const [minutes, setMinutes] = useState(String(DEFAULT_MINUTES));
+  const [sourceUrl, setSourceUrl] = useState("");
 
   const parsedMinutes = Number(minutes);
   const validMinutes = Number.isFinite(parsedMinutes) && parsedMinutes > 0;
@@ -68,9 +104,11 @@ export function SetupScreen({ controller }: { controller: MeetingController }) {
     controller.addAgendaItem({
       title: title.trim(),
       allocatedSeconds: Math.round(parsedMinutes * 60),
+      sourceUrl: sourceUrl.trim(),
     });
     setTitle("");
     setMinutes(String(DEFAULT_MINUTES));
+    setSourceUrl("");
   }
 
   return (
@@ -112,6 +150,18 @@ export function SetupScreen({ controller }: { controller: MeetingController }) {
           주제 추가
         </Button>
       </form>
+
+      <label className="-mt-4 flex flex-col gap-1.5">
+        <span className="text-sm font-medium text-muted-foreground">
+          자료 URL (선택)
+        </span>
+        <Input
+          value={sourceUrl}
+          onChange={(event) => setSourceUrl(event.target.value)}
+          placeholder="비워두면 위키백과에서 자동으로 찾습니다"
+          aria-label="자료 URL"
+        />
+      </label>
 
       {controller.meeting.items.length === 0 ? (
         <p className="rounded-md border border-dashed p-8 text-center text-muted-foreground">
@@ -178,6 +228,19 @@ export function SetupScreen({ controller }: { controller: MeetingController }) {
                     <Trash2 />
                   </Button>
                 </div>
+              </div>
+
+              <div className="flex flex-col gap-1.5 pl-9">
+                <span className="text-sm text-muted-foreground">
+                  자료 URL (선택)
+                </span>
+                <SourceUrlInput
+                  value={item.sourceUrl}
+                  onCommit={(next) =>
+                    controller.setAgendaItemSourceUrl(item.id, next)
+                  }
+                  label={`${index + 1}번 주제 자료 URL`}
+                />
               </div>
 
               <div

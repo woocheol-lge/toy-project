@@ -76,3 +76,11 @@ export async function searchReferences(topic: string): Promise<Reference[]> {
 
   return parseLookupResponse(await response.json());
 }
+
+/** 진행자가 직접 넣은 URL에서 제목과 설명을 가져온다. */
+export async function fetchLinkPreview(url: string): Promise<Reference> {
+  const response = await fetch(`/api/link-preview?url=${encodeURIComponent(url)}`);
+  if (!response.ok) throw new Error(`자료 가져오기 실패: ${response.status}`);
+
+  return (await response.json()) as Reference;
+}

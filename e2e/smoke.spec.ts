@@ -284,3 +284,15 @@ test("새 회의 준비는 확인을 거치고, 취소하면 결론이 그대로
   await page.reload();
   await expect(page.getByText("아직 등록한 주제가 없습니다.")).toBeVisible();
 });
+
+test("내부망 주소는 안전하지 않아 자료를 가져오지 않는다", async ({ page }) => {
+  await page.goto("/");
+  await addAgendaItem(page, "배포 일정 확정", "10");
+  const url = page.getByLabel("1번 주제 자료 URL");
+  await url.fill("http://localhost:9999");
+  await url.blur();
+
+  await expect(
+    page.getByText("넣어 둔 URL에서 자료를 가져오지 못했습니다.")
+  ).toBeVisible();
+});

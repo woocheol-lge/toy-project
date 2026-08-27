@@ -67,5 +67,6 @@ describe("예전에 저장된 회의 이어쓰기", () => {
 
     expect(restored?.items[0].references).toEqual([]);
     expect(restored?.items[0].referenceStatus).toBe("idle");
+    expect(restored?.items[0].sourceUrl).toBe("");
   });
 });

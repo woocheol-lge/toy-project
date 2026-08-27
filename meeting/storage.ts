@@ -25,6 +25,7 @@ function withReferenceFields(meeting: Meeting): Meeting {
       ...item,
       references: Array.isArray(item.references) ? item.references : [],
       referenceStatus: item.referenceStatus ?? "idle",
+      sourceUrl: typeof item.sourceUrl === "string" ? item.sourceUrl : "",
     })),
   };
 }

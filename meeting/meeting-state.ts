@@ -15,7 +15,7 @@ export function createEmptyMeeting(): Meeting {
 
 export function addItem(
   meeting: Meeting,
-  input: { title: string; allocatedSeconds?: number }
+  input: { title: string; allocatedSeconds?: number; sourceUrl?: string }
 ): Meeting {
   const item: AgendaItem = {
     id: createId(),
@@ -25,6 +25,7 @@ export function addItem(
     elapsedSeconds: 0,
     references: [],
     referenceStatus: "idle",
+    sourceUrl: input.sourceUrl ?? "",
   };
 
   return { ...meeting, items: [...meeting.items, item] };
@@ -33,7 +34,7 @@ export function addItem(
 export function updateItem(
   meeting: Meeting,
   id: string,
-  patch: Partial<Pick<AgendaItem, "title" | "allocatedSeconds">>
+  patch: Partial<Pick<AgendaItem, "title" | "allocatedSeconds" | "sourceUrl">>
 ): Meeting {
   return {
     ...meeting,
