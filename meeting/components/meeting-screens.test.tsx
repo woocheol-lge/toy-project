@@ -161,3 +161,37 @@ test("찾은 자료가 없으면 없다고 알려준다", async () => {
     ).toBeInTheDocument()
   );
 });
+
+test("새 회의 준비를 누르면 확인을 받고, 취소하면 결론이 남는다", async () => {
+  render(<MeetingScreens />);
+  addAgendaItem("배포 일정 확정", "10");
+  fireEvent.click(screen.getByRole("button", { name: "회의 시작" }));
+  fireEvent.click(screen.getByRole("button", { name: /회의 마치기/ }));
+
+  fireEvent.click(screen.getByRole("button", { name: "새 회의 준비" }));
+
+  expect(
+    screen.getByText("정말 새 회의를 시작하시겠습니까?")
+  ).toBeInTheDocument();
+
+  fireEvent.click(screen.getByRole("button", { name: "취소" }));
+
+  expect(
+    screen.getByRole("heading", { level: 1, name: "회의 결론" })
+  ).toBeInTheDocument();
+});
+
+test("확인 창에서 승낙하면 결론이 사라지고 준비 화면으로 돌아간다", async () => {
+  render(<MeetingScreens />);
+  addAgendaItem("배포 일정 확정", "10");
+  fireEvent.click(screen.getByRole("button", { name: "회의 시작" }));
+  fireEvent.click(screen.getByRole("button", { name: /회의 마치기/ }));
+
+  fireEvent.click(screen.getByRole("button", { name: "새 회의 준비" }));
+  fireEvent.click(screen.getByRole("button", { name: "새 회의 시작" }));
+
+  expect(
+    screen.getByRole("heading", { level: 1, name: "회의 준비" })
+  ).toBeInTheDocument();
+  expect(screen.getByText("아직 등록한 주제가 없습니다.")).toBeInTheDocument();
+});
