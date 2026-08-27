@@ -121,47 +121,50 @@ export function SetupScreen({ controller }: { controller: MeetingController }) {
       </header>
 
       <form
-        className="flex flex-col gap-3 sm:flex-row sm:items-end"
+        className="flex flex-col gap-3"
         onSubmit={(event) => {
           event.preventDefault();
           submitNewItem();
         }}
       >
-        <label className="flex flex-1 flex-col gap-1.5">
-          <span className="text-sm font-medium">주제</span>
-          <Input
-            value={title}
-            onChange={(event) => setTitle(event.target.value)}
-            placeholder="예: 다음 배포 일정 확정"
-            aria-label="주제 제목"
-          />
-        </label>
-        <label className="flex w-32 flex-col gap-1.5">
-          <span className="text-sm font-medium">시간(분)</span>
-          <Input
-            type="number"
-            min={1}
-            value={minutes}
-            onChange={(event) => setMinutes(event.target.value)}
-            aria-label="주제 시간(분)"
-          />
-        </label>
-        <Button type="submit" disabled={!addable} className="h-9 px-4">
-          주제 추가
-        </Button>
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-end">
+          <label className="flex flex-1 flex-col gap-1.5">
+            <span className="text-sm font-medium">주제</span>
+            <Input
+              value={title}
+              onChange={(event) => setTitle(event.target.value)}
+              placeholder="예: 다음 배포 일정 확정"
+              aria-label="주제 제목"
+            />
+          </label>
+          <label className="flex w-32 flex-col gap-1.5">
+            <span className="text-sm font-medium">시간(분)</span>
+            <Input
+              type="number"
+              min={1}
+              value={minutes}
+              onChange={(event) => setMinutes(event.target.value)}
+              aria-label="주제 시간(분)"
+            />
+          </label>
+        </div>
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-end">
+          <label className="flex flex-1 flex-col gap-1.5">
+            <span className="text-sm font-medium text-muted-foreground">
+              자료 URL 또는 단어 (선택)
+            </span>
+            <Input
+              value={sourceUrl}
+              onChange={(event) => setSourceUrl(event.target.value)}
+              placeholder="비워두면 주제 제목으로 자동 검색합니다. URL이나 검색어를 넣어도 됩니다."
+              aria-label="자료 URL 또는 단어"
+            />
+          </label>
+          <Button type="submit" disabled={!addable} className="h-9 px-4">
+            주제 추가
+          </Button>
+        </div>
       </form>
-
-      <label className="-mt-4 flex flex-col gap-1.5">
-        <span className="text-sm font-medium text-muted-foreground">
-          자료 URL 또는 단어 (선택)
-        </span>
-        <Input
-          value={sourceUrl}
-          onChange={(event) => setSourceUrl(event.target.value)}
-          placeholder="비워두면 주제 제목으로 자동 검색합니다. URL이나 검색어를 넣어도 됩니다."
-          aria-label="자료 URL 또는 단어"
-        />
-      </label>
 
       {controller.meeting.items.length === 0 ? (
         <p className="rounded-md border border-dashed p-8 text-center text-muted-foreground">
