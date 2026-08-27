@@ -68,27 +68,12 @@ export function RunningScreen({
         <p className="text-lg text-muted-foreground tabular-nums">
           주제 {position} / {count}
         </p>
-        <div className="flex flex-wrap items-baseline gap-x-5 gap-y-1 text-lg">
-          <p className="text-muted-foreground tabular-nums">
-            지금{" "}
-            <span className="font-medium text-foreground">
-              {formatWallClock(controller.now)}
-            </span>
-          </p>
-          <p
-            className={cn(
-              "tabular-nums",
-              totalOvertime ? "text-destructive" : "text-muted-foreground",
-            )}
-          >
-            회의 전체{" "}
-            <span className="font-medium">
-              {totalOvertime
-                ? `+${formatClock(controller.totalOvertimeSeconds)} 초과`
-                : `${formatClock(controller.totalRemainingSeconds)} 남음`}
-            </span>
-          </p>
-        </div>
+        <p
+          className="text-lg font-medium text-foreground tabular-nums"
+          aria-label="지금 시각"
+        >
+          {formatWallClock(controller.now)}
+        </p>
       </header>
 
       <section className="flex flex-col items-center gap-4 py-2">
@@ -97,10 +82,25 @@ export function RunningScreen({
         </h1>
 
         <div className="flex flex-wrap items-center justify-center gap-8">
-          <TimerDial
-            remainingRatio={controller.currentRemainingRatio}
-            overtime={overtime}
-          />
+          <div className="flex flex-col items-center gap-2">
+            <TimerDial
+              remainingRatio={controller.currentRemainingRatio}
+              overtime={overtime}
+            />
+            <p
+              className={cn(
+                "text-sm tabular-nums",
+                totalOvertime ? "text-destructive" : "text-muted-foreground",
+              )}
+            >
+              회의 전체{" "}
+              <span className="font-medium">
+                {totalOvertime
+                  ? `+${formatClock(controller.totalOvertimeSeconds)} 초과`
+                  : `${formatClock(controller.totalRemainingSeconds)} 남음`}
+              </span>
+            </p>
+          </div>
 
           <div className="flex flex-col items-center gap-1">
             <p
